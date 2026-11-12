@@ -1,0 +1,64 @@
+{
+  "kind": "REAL_MODEL_FIXED_FUNCTION_3X1_VALIDATED_CREDENTIAL",
+  "source_commit": "1f9a8b2f06879854e0dc0614eb6925104e05e861",
+  "scheduled": 3,
+  "started": 3,
+  "finished": 3,
+  "resolved": 3,
+  "actual_model_requests": 23,
+  "peak_microcny": 117052,
+  "new_reserved_microcny": 2637824,
+  "prior_unknown_reserved_microcny": 114688,
+  "cumulative_reserved_microcny": 2752512,
+  "cumulative_actual_cost_unknown": true,
+  "authorized_cap_microcny": 3000000,
+  "cleanup_complete": true,
+  "not_a_benchmark_claim": true,
+  "previous_stopped_cohort": {
+    "scheduled": 3,
+    "started": 1,
+    "not_started": 2,
+    "resolved": 0,
+    "actual_requests": 1,
+    "cost_unknown": true,
+    "reserved_microcny": 114688
+  },
+  "rows": [
+    {
+      "task_id": "json-max-subarray",
+      "resolved": true,
+      "paid_requests": 8,
+      "seconds": 70.766,
+      "verification_status": "improved",
+      "workflow_outcome": "completed",
+      "logical_cost_unknown": false,
+      "f2p_cases": 1,
+      "p2p_cases": null,
+      "peak_microcny": 45302
+    },
+    {
+      "task_id": "json-lis-length",
+      "resolved": true,
+      "paid_requests": 8,
+      "seconds": 46.797,
+      "verification_status": "improved",
+      "workflow_outcome": "completed",
+      "logical_cost_unknown": false,
+      "f2p_cases": 1,
+      "p2p_cases": null,
+      "peak_microcny": 38798
+    },
+    {
+      "task_id": "json-lower-median",
+      "resolved": true,
+      "paid_requests": 7,
+      "seconds": 42.953,
+      "verification_status": "improved",
+      "workflow_outcome": "completed",
+      "logical_cost_unknown": false,
+      "f2p_cases": 1,
+      "p2p_cases": null,
+      "peak_microcny": 32952
+    }
+  ]
+}

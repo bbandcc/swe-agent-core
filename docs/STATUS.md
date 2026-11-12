@@ -14,13 +14,19 @@
 
 随后独立预登记的三固定任务×三次观察已完成，7/9解决、2/9未解决；sum与sum-squares各2/3、weighted-sum为3/3。共71个实际API请求，峰值价保守核算0.333800元，9行全部保留、候选清理全部通过，无自动重试。见[整理后的结果](evaluation.json)。旧首题不混入新cohort。
 
-两次未解决在8请求额度耗尽后停止：实际已发请求都有usage，guard费用已知；原逻辑账本仍将被拒绝调用记为transport error/unknown，不重写为零费成功。这是后续诊断语义改进点，不能隐藏或删去失败。每题3组stdin属于1个pytest testcase，F2P=1、P2P=N/A；不是holdout、SWE-bench或显著提升证明。
+两次未解决在8请求额度耗尽后停止：实际已发请求都有usage，guard费用已知；原逻辑账本仍将被拒绝调用记为transport error/unknown，不重写为零费成功。后续代码已用可信本地拒绝类型识别未dispatch：本次known-zero仍FAILED并停止，历史unknown不清零；HTTP/timeout/出站后故障仍UNKNOWN。原失败记录不能隐藏或删去。每题3组stdin属于1个pytest testcase，F2P=1、P2P=N/A；不是holdout、SWE-bench或显著提升证明。
 
 策略最多8请求、每次最大输出2048 token、总预留上界0.917504元。输入上界依固定公开模板/tokenizer推导，软件预算以供应商遵循公开协议和核价为前提。只给已允许工具和G工作区，不给候选容器oracle或凭据。
 
 推导与固定上游源码见[预算依据](../research/remaining-20261111/BUDGET_RESEARCH.md)。只支持受审的纯文本/本地函数协议，新字段和收费工具不能自动沿用此上界。
 
 受影响156项回归、25项试点边界和4项Docker控制已通过；这些数字属于相应固定版本，不能当新CI成绩。新增评测与最终双平台CI以当前交付报告和实际GitHub run为准。
+
+## 后续函数任务观察
+
+三个新函数题（最大连续子数组、严格LIS长度、下中位数）各运行一次，新凭据cohort3/3解决，共23实际请求；峰值价保守核算0.117052元，usage/audit/cleanup完整。任务分别6/6/7组输入，F2P=1、P2P=N/A；仍为自定义单文件算法小样。
+
+此前另一cohort因鉴权条件停止，1行启动且费用UNKNOWN、2行未启动，全部保留。用户本机更新凭据后新编号运行；含原未知请求的累计预留为2.752512元，低于新增批次3元授权。0.117052元只是新cohort的已知峰值保守核算，不是两批总账单。见[公开数据](evaluation-functions.json)。旧3×3不混入新分母。
 
 ## 开发验收
 

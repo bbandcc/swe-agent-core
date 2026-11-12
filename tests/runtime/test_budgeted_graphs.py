@@ -95,6 +95,28 @@ def structured_result(
 
 
 class BudgetedGraphTests(unittest.TestCase):
+    def test_local_request_rejection_settles_zero_and_stops_the_compiled_graph(self) -> None:
+        rejected = capture_model_exception(BudgetErrorCode.MODEL_REQUEST_LIMIT_EXCEEDED)
+        runtime = ArchitectRuntime(
+            plan_next_step=lambda _: rejected,
+            check_research_step=lambda _: self.fail("rejected request must stop"),
+            conduct_research=lambda _: self.fail("rejected request must stop"),
+            extract_implementation_plan=lambda _: self.fail("rejected request must stop"),
+            load_codebase_structure=lambda: "app.py",
+        )
+        result = create_architect_workflow(runtime, research_tools=[],
+            budget_boundary=DurableBudgetBoundary("local-denial", clock=lambda: 100.0)).invoke({
+                "implementation_research_scratchpad": [HumanMessage(content="task")],
+                "budget": BudgetSnapshot.create(max_steps=4, max_cost_usd=None, deadline_at=200.0),
+            })
+        self.assertEqual(result["runtime_error_code"], BudgetErrorCode.MODEL_REQUEST_LIMIT_EXCEEDED)
+        budget = result["budget"]
+        self.assertEqual(budget.steps_used, 1)
+        self.assertEqual(budget.reservations[0].status, CallStatus.FAILED)
+        self.assertEqual(budget.usage[0].status, UsageStatus.KNOWN)
+        self.assertEqual(budget.usage[0].cost_microusd, 0)
+        self.assertFalse(budget.cost_unknown)
+
     def test_tool_config_survives_secret_policy_and_audit_wrappers(self) -> None:
         from langchain_core.runnables import RunnableConfig
         from agent.runtime import EventRecorder, JsonlEventSink, KnownSecretFilter

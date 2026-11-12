@@ -19,6 +19,7 @@ import uuid
 
 MAX_OUTPUT = 16_384
 MAX_SOURCE = 32_768
+MAX_CASES = 8
 IMAGE_PATTERN = re.compile(r"python@sha256:[0-9a-f]{64}\Z")
 PYTEST_CONFIG_BYTES = b"[pytest]\naddopts =\n"
 
@@ -114,7 +115,10 @@ def oracle_source_for(task_id: str = "json-sum") -> str:
     """Select fixed fixture bytes on the host; copied runtime stays stdlib-only."""
     from agent.evaluation.pilot_tasks import get_pilot_task
     task = get_pilot_task(task_id)
-    return ORACLE_SOURCE.replace("(([], 0), ([1, 2, 3], 6), ([-2, 5, 7], 10))", task.case_literal)
+    if not 1 <= len(task.cases) <= MAX_CASES:
+        raise ValueError("Task case count exceeds the fixed observer bound.")
+    return (ORACLE_SOURCE.replace("(([], 0), ([1, 2, 3], 6), ([-2, 5, 7], 10))", task.case_literal)
+            .replace("len(records) == 3", "len(records) == " + str(len(task.cases))))
 
 
 def build_observer(output_root: str | Path, image: str, *,
@@ -157,7 +161,7 @@ def _register_lease(path: Path, name: str, snapshot: Path, source_hash: str) -> 
     if path.stat().st_size > 16_384:
         raise ValueError("Lease inventory exceeds its bound.")
     leases = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(leases, list) or len(leases) >= 3:
+    if not isinstance(leases, list) or len(leases) >= MAX_CASES:
         raise ValueError("Lease inventory is invalid or full.")
     leases.append({"container_name": name, "snapshot": str(snapshot), "source_hash": source_hash})
     temporary = path.with_suffix(".tmp")
@@ -172,7 +176,7 @@ def cleanup_leases(path: Path, *, timeout_seconds: float = 5) -> bool:
         if path.stat().st_size > 16_384:
             return False
         leases = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(leases, list) or len(leases) > 3:
+        if not isinstance(leases, list) or len(leases) > MAX_CASES:
             return False
         for lease in leases:
             name = lease["container_name"]

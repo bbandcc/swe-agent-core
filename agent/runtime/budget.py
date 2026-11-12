@@ -49,6 +49,8 @@ class BudgetErrorCode(str, Enum):
     MODEL_OUTPUT_INVALID = "model_output_invalid"
     MODEL_REQUEST_TIMEOUT = "model_request_timeout"
     MODEL_TRANSPORT_ERROR = "model_transport_error"
+    MODEL_REQUEST_LIMIT_EXCEEDED = "model_request_limit_exceeded"
+    MODEL_REQUEST_REJECTED = "model_request_rejected"
     SENSITIVE_DATA_DETECTED = "sensitive_data_detected"
     RECOVERY_CONFLICT = "recovery_conflict"
 

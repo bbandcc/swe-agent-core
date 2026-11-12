@@ -20,6 +20,21 @@ CONTROL_ENV = {"PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTHONDONTWRITEBYTECODE":
 
 
 class PilotTaskTests(unittest.TestCase):
+    def test_function_tasks_freeze_reviewed_code_and_six_or_more_input_cases(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fingerprints = []
+            for task_id in ("json-max-subarray", "json-lis-length", "json-lower-median"):
+                task = get_pilot_task(task_id)
+                self.assertIn(b"def solve(values):", task.original)
+                self.assertNotEqual(task.original, task.gold)
+                self.assertGreaterEqual(len(task.cases), 6)
+                root = Path(directory) / task_id
+                prepared = prepare_trial(root, task_id=task_id)
+                self.assertEqual(load_trial(root)[1], prepared)
+                self.assertEqual(prepared["task_fingerprint"], task.fingerprint)
+                fingerprints.append(task.fingerprint)
+            self.assertEqual(len(set(fingerprints)), 3)
+
     def test_trial_alias_uses_one_canonical_root_for_preparation_and_loading(self):
         with tempfile.TemporaryDirectory() as directory:
             parent = Path(directory)
@@ -103,7 +118,7 @@ class PilotTaskTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get("SWE_AGENT_RUN_DOCKER_PILOT") == "1", "requires explicit Docker pilot environment")
 class PilotTaskDockerControls(unittest.TestCase):
-    def test_all_three_tasks_reject_original_and_wrong_and_accept_gold(self):
+    def test_all_fixed_tasks_reject_original_and_wrong_and_accept_gold(self):
         evidence = []
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, CONTROL_ENV):
             for task_id in PILOT_TASK_IDS:
@@ -120,7 +135,7 @@ class PilotTaskDockerControls(unittest.TestCase):
                         result = runner.run(spec)
                         self.assertEqual(result.status.value, "pass" if label == "gold" else "fail", result)
                         receipt = runner.receipts[0]
-                        self.assertEqual(len(receipt["executions"]), 3)
+                        self.assertEqual(len(receipt["executions"]), len(task.cases))
                         self.assertTrue(receipt["cleanup_complete"])
                         evidence.append({"task_id": task_id, "control": label, "status": result.status.value,
                                          "source_hash": receipt["source_hash"], "image": receipt["image"],

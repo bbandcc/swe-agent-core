@@ -74,6 +74,47 @@ class _ActiveDisconnectHandler(BaseHTTPRequestHandler):
 
 
 class ModelRequestTimeoutTests(unittest.TestCase):
+    def test_only_trusted_explicit_connection_causes_prove_no_dispatch(self) -> None:
+        import httpx
+        import openai
+        from agent.runtime import ModelRequestRejected
+
+        request = httpx.Request("POST", "https://api.deepseek.com/chat/completions")
+        local = ModelRequestRejected(BudgetErrorCode.MODEL_REQUEST_REJECTED, "never-send-secret")
+        wrapped = openai.APIConnectionError(request=request)
+        wrapped.__cause__ = local
+        self.assertEqual(classify_model_exception(local), BudgetErrorCode.MODEL_REQUEST_REJECTED)
+        self.assertEqual(classify_model_exception(wrapped), BudgetErrorCode.MODEL_REQUEST_REJECTED)
+        uncertain = [httpx.TransportError("PILOT_SPEND_LIMIT"),
+                     openai.APIConnectionError(message="PILOT_REQUEST_REJECTED", request=request)]
+        context_only = openai.APIConnectionError(request=request)
+        context_only.__context__ = local
+        uncertain.append(context_only)
+        status_error = openai.APIStatusError("PILOT_REQUEST_REJECTED",
+            response=httpx.Response(429, request=request), body={"reason": "PILOT_SPEND_LIMIT"})
+        status_error.__cause__ = local
+        uncertain.append(status_error)
+        cycle = openai.APIConnectionError(request=request)
+        cycle.__cause__ = cycle
+        uncertain.append(cycle)
+        deep = local
+        for _ in range(9):
+            wrapper = openai.APIConnectionError(request=request)
+            wrapper.__cause__ = deep
+            deep = wrapper
+        uncertain.append(deep)
+        for error in uncertain:
+            with self.subTest(kind=type(error).__name__):
+                code = classify_model_exception(error)
+                self.assertEqual(code, BudgetErrorCode.MODEL_TRANSPORT_ERROR)
+                result = capture_model_exception(code)
+                self.assertEqual(result.usage.status, UsageStatus.UNKNOWN)
+                self.assertIsNone(result.usage.cost_microusd)
+        timeout = openai.APITimeoutError(request=request)
+        timeout.__cause__ = local
+        self.assertEqual(classify_model_exception(timeout), BudgetErrorCode.MODEL_REQUEST_TIMEOUT)
+        self.assertNotIn("never-send-secret", repr(capture_model_exception(classify_model_exception(wrapped))))
+
     def test_active_disconnect_is_one_attempt_with_unknown_usage(self) -> None:
         _ActiveDisconnectHandler.requests = 0
         _ActiveDisconnectHandler.request_seen = threading.Event()

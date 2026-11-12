@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from decimal import Decimal, ROUND_CEILING
 from typing import Generic, TypeVar
 
+import httpx
 from langchain_core.messages import AIMessage
 
 from agent.runtime.budget import BudgetErrorCode, UsageRecord, UsageStatus
@@ -16,6 +17,24 @@ from agent.runtime.config import TokenPricing
 
 T = TypeVar("T")
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
+_LOCAL_REJECTIONS = frozenset({
+    BudgetErrorCode.MODEL_REQUEST_LIMIT_EXCEEDED,
+    BudgetErrorCode.MODEL_REQUEST_REJECTED,
+})
+
+
+class ModelRequestRejected(httpx.TransportError):
+    """Trusted adapter proof that this attempt was refused before dispatch.
+
+    Never raise this after calling an external transport. Provider text, HTTP
+    errors and uncertain outcomes cannot establish this accounting fact.
+    """
+
+    def __init__(self, error_code: BudgetErrorCode, message: str) -> None:
+        if not isinstance(error_code, BudgetErrorCode) or error_code not in _LOCAL_REJECTIONS:
+            raise ValueError("Only a local pre-dispatch rejection is permitted.")
+        super().__init__(message)
+        self.error_code = error_code
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,18 +108,19 @@ def capture_model_failure(
 def capture_model_exception(
     error_code: BudgetErrorCode,
 ) -> ModelCallResult[None]:
-    """Convert a known transport boundary failure into safe durable metadata."""
-    if error_code not in {
+    """Capture a classified failure; only proven local rejection has zero use."""
+    if not isinstance(error_code, BudgetErrorCode) or error_code not in {
         BudgetErrorCode.MODEL_REQUEST_TIMEOUT,
         BudgetErrorCode.MODEL_TRANSPORT_ERROR,
-    }:
-        raise ValueError("error_code must identify a model transport failure.")
+    } | _LOCAL_REJECTIONS:
+        raise ValueError("error_code must identify a classified model failure.")
     response_digest = hashlib.sha256(
         error_code.value.encode("utf-8")
     ).hexdigest()
     return ModelCallResult(
         value=None,
-        usage=UsageMeasurement(UsageStatus.UNKNOWN),
+        usage=(UsageMeasurement(UsageStatus.KNOWN, 0, 0, 0, 0, "not_dispatched")
+               if error_code in _LOCAL_REJECTIONS else UsageMeasurement(UsageStatus.UNKNOWN)),
         response_digest=response_digest,
         error=error_code.value,
         error_code=error_code,
@@ -112,6 +132,21 @@ def classify_model_exception(error: BaseException) -> BudgetErrorCode | None:
     import anthropic
     import httpx
     import openai
+
+    # SDKs wrap local transport exceptions with APIConnectionError from err.
+    # Follow only these explicit wrappers, never arbitrary context or text.
+    current = error
+    seen = set()
+    for _ in range(8):
+        if id(current) in seen:
+            break
+        seen.add(id(current))
+        if isinstance(current, ModelRequestRejected):
+            return current.error_code
+        if (isinstance(current, (openai.APITimeoutError, anthropic.APITimeoutError))
+                or not isinstance(current, (openai.APIConnectionError, anthropic.APIConnectionError))):
+            break
+        current = current.__cause__
 
     if isinstance(
         error,

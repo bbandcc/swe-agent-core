@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "e5dd65678dac09fc96010735db9de7a66918e9bd",
+  "source_commit": "9d70b40fd3b2c34af2f5929b24b52ab9fe6259d9",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -40,8 +40,8 @@
       "bytes": 1066
     },
     "README.md": {
-      "sha256": "ec5b9504059330d6b060ef417e19f105534cd828c11615b22a3de827c16f77e7",
-      "bytes": 26799
+      "sha256": "1e6830fd91107cfc95503835d66ae88f8ceb5647b54cc9f1776d8be8d36c9c93",
+      "bytes": 27285
     },
     "UPSTREAM.md": {
       "sha256": "36b56391ea855c415dbddbd1033ad49bda3030fa6d13769e42745d507ba85b1b",
@@ -204,20 +204,20 @@
       "bytes": 7575
     },
     "agent/evaluation/pilot_control.py": {
-      "sha256": "4f8cd26a5f982ae66292318bc2790029235f19dbcaa7adbd210d859beb704515",
-      "bytes": 15303
+      "sha256": "51a247d790950c6050dd9cbf68714d7b72c2d8f682085f277bda958b5c4a677e",
+      "bytes": 15544
     },
     "agent/evaluation/pilot_execution.py": {
       "sha256": "c7ee277a17e7619314c65e826e3041fd51b9aaf7cfbbf59e0e9a628ed1458aa9",
       "bytes": 10857
     },
     "agent/evaluation/pilot_spend.py": {
-      "sha256": "22a1d8dfc282dab9862202739257888c89372e1a2a1df8489fe89dbf306c9ec0",
-      "bytes": 11216
+      "sha256": "43d5c3bcb001b896cea906c3f855a37043e4d9a987268844d6b2c5bea4865926",
+      "bytes": 11569
     },
     "agent/evaluation/pilot_tasks.py": {
-      "sha256": "9ef06437edf437da10ab24cd266bdc0902e9ea8cd35243789cbfb8939d2451dd",
-      "bytes": 2323
+      "sha256": "2a8971d8f9f92680005c5e0ed2dd0a60ec493febef27e38d898b3b8b13432247",
+      "bytes": 4862
     },
     "agent/evaluation/pilot_workflow.py": {
       "sha256": "a626834b9702506bda9e1cf6548cfa112da9fc93e6bde0e323e63a12fd916cc1",
@@ -264,8 +264,8 @@
       "bytes": 917
     },
     "agent/runtime/__init__.py": {
-      "sha256": "8014d46feba4a0f081b1bc4d9b47396a7f1664b346e8d84316c90781098ce38a",
-      "bytes": 5735
+      "sha256": "2f38a664f60bd76ea68e0101f3e9b67bfb2fae956cac7349d32c45db2b5bba40",
+      "bytes": 5789
     },
     "agent/runtime/__main__.py": {
       "sha256": "9729a300ec9ce5770150a413f9a482ff21aedca3d0f47bdc0133ae4ea18bcd88",
@@ -284,12 +284,12 @@
       "bytes": 11502
     },
     "agent/runtime/budget.py": {
-      "sha256": "943c01931e8d3a0cc4699e77e798f7d2f4b59c8bb1159460c8b9bcbb9b8883a8",
-      "bytes": 14053
+      "sha256": "e676fc0c2f342ee51eb85d7a391bf43951c5af9cdd3005f7e7c91d6763a1f0f4",
+      "bytes": 14173
     },
     "agent/runtime/calls.py": {
-      "sha256": "cdfebb0048f81ab54dedbdc4c787e5d63457577afb0798ff5e8bd3fa8ec34b76",
-      "bytes": 6250
+      "sha256": "7da70a6d135ae09cb79e3694ac1378973b5c4fe282e459161349ea1c57ca4f16",
+      "bytes": 7825
     },
     "agent/runtime/checkpointing.py": {
       "sha256": "2fa5748549e7d368028364f78152eb3ea9d14c85b941a81fbb6c21ed3719a861",
@@ -436,8 +436,12 @@
       "bytes": 5943
     },
     "docs/STATUS.md": {
-      "sha256": "cd81e93dc208e66b0a992cf97d8e727ec5cddb36434fc329706a321b988805a8",
-      "bytes": 3283
+      "sha256": "9db6757e1fc939998fa72b6d7fb1d8f8cb1201c41ed115ce8f167add674ad69a",
+      "bytes": 4129
+    },
+    "docs/evaluation-functions.json": {
+      "sha256": "fdd447f93c80bb3453b31ed741365b8b592e204a258e1b070d730d33263cf2e9",
+      "bytes": 1691
     },
     "docs/evaluation.json": {
       "sha256": "7980560b4c142d450a615af0c3cae3a1e82afdcd12097e511b193f89b6e4bf68",
@@ -596,12 +600,12 @@
       "bytes": 7471
     },
     "tests/evaluation/test_pilot_spend.py": {
-      "sha256": "ae04df6f257dce2f371cf7d8a0867c502868c1864be22ab1b708eb60b8368d29",
-      "bytes": 16283
+      "sha256": "5756287404d0dd03cf69e40822e47162243bc7f23a5c3200ad18cf0547d1b132",
+      "bytes": 19063
     },
     "tests/evaluation/test_pilot_tasks.py": {
-      "sha256": "e693c71b619854567a2b8efc8df3b9deb8349a25658de492eb7bf049fbc0ce82",
-      "bytes": 8029
+      "sha256": "dcc5700590437a630c1fa317099eedad2d5f706e9a85b41950eadb0741b1ca74",
+      "bytes": 8910
     },
     "tests/evaluation/test_pilot_workflow.py": {
       "sha256": "ec1ac05b8b84b0225c3c650a68c4757475378caa98513cee6cfed9d6a3bd9da2",
@@ -664,8 +668,8 @@
       "bytes": 6696
     },
     "tests/runtime/test_budgeted_graphs.py": {
-      "sha256": "b71327abdcd7fa46b0479f717c781cf5be74bdf030c2e8ea4d2446535dbdde49",
-      "bytes": 51095
+      "sha256": "36800065345ed187964e660787cb78774d775266f0ec3415e8aa63265769e2ac",
+      "bytes": 52479
     },
     "tests/runtime/test_config_loading.py": {
       "sha256": "1b9fb672080fe7f1803c310eab1f146023c531cd6e73e4fee5d3f3bf88f9af10",
@@ -688,8 +692,8 @@
       "bytes": 14904
     },
     "tests/runtime/test_model_timeout.py": {
-      "sha256": "0ef0e42aa862626a72a5fb0ca4c0d1f79532039548c0b9b993dd2cb16e048fe4",
-      "bytes": 5940
+      "sha256": "1cabe5c4d779b5e7565a7a8645a3c063425b3b271c2587a1c95250bfdd8c538f",
+      "bytes": 8206
     },
     "tests/runtime/test_model_usage.py": {
       "sha256": "3f833004a2c00df6b72ee183f7f1617bd6fdef21a213bb52079b06d1d7f54223",

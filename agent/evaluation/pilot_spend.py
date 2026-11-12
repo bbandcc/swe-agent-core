@@ -13,6 +13,8 @@ import threading
 
 import httpx
 
+from agent.runtime.calls import ModelRequestRejected
+from agent.runtime.budget import BudgetErrorCode
 MAX_REQUESTS = 8
 INPUT_TOKENS = 49152
 OUTPUT_TOKENS = 2048
@@ -55,7 +57,7 @@ def _admit(request: httpx.Request) -> tuple[httpx.Request, str]:
     url = request.url
     if (request.method != "POST" or url.scheme != "https" or url.host != "api.deepseek.com"
             or url.port not in (None, 443) or url.raw_path != b"/chat/completions" or url.userinfo):
-        _reject("PILOT_REQUEST_REJECTED")
+        raise ModelRequestRejected(BudgetErrorCode.MODEL_REQUEST_REJECTED, "PILOT_REQUEST_REJECTED") from None
     try:
         raw = request.content
         if len(raw) > 64 * 1024:
@@ -118,7 +120,7 @@ def _admit(request: httpx.Request) -> tuple[httpx.Request, str]:
         if len(canonical) > 16384 or 2 * len(canonical) + 256 * (len(messages) + 1) + 4096 > INPUT_TOKENS:
             raise ValueError("input bound")
     except (ValueError, TypeError, KeyError, UnicodeError, RecursionError, httpx.RequestNotRead):
-        _reject("PILOT_REQUEST_REJECTED")
+        raise ModelRequestRejected(BudgetErrorCode.MODEL_REQUEST_REJECTED, "PILOT_REQUEST_REJECTED") from None
     headers = [(key, value) for key, value in request.headers.raw if key.lower() != b"content-length"]
     normalized = httpx.Request(request.method, request.url, content=canonical,
                                headers=headers, extensions=request.extensions)
@@ -164,7 +166,9 @@ class CappedDeepSeekTransport(httpx.BaseTransport):
             if self._closed or self._blocked:
                 _reject("PILOT_SPEND_BLOCKED")
             if self._requests >= MAX_REQUESTS:
-                _reject("PILOT_SPEND_LIMIT")
+                raise ModelRequestRejected(
+                    BudgetErrorCode.MODEL_REQUEST_LIMIT_EXCEEDED, "PILOT_SPEND_LIMIT"
+                ) from None
             request, digest = _admit(request)
             self._requests += 1
             try:

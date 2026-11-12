@@ -54,6 +54,7 @@ from agent.runtime.budget import (
 )
 from agent.runtime.calls import (
     ModelCallResult,
+    ModelRequestRejected,
     UsageMeasurement,
     capture_model_exception,
     capture_model_result,
@@ -159,6 +160,7 @@ __all__ = [
     "UsageRecord",
     "UsageStatus",
     "ModelCallResult",
+    "ModelRequestRejected",
     "UsageMeasurement",
     "capture_model_exception",
     "capture_model_result",

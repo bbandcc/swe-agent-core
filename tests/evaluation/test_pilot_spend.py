@@ -24,6 +24,47 @@ def reply():
 
 
 class PilotSpendTests(unittest.TestCase):
+    def test_exhausted_http_allowance_is_known_zero_through_both_real_runtimes(self):
+        from langchain_deepseek import ChatDeepSeek
+        from pydantic import SecretStr
+        from agent.config import ModelSettings
+        from agent.architect.runtime import durable_architect_runtime
+        from agent.developer.runtime import durable_developer_runtime
+        from agent.runtime import UsageStatus
+
+        with tempfile.TemporaryDirectory() as directory:
+            sent = []
+            def provider(request):
+                sent.append(request)
+                return httpx.Response(200, json=reply())
+            cap = CappedDeepSeekTransport(httpx.MockTransport(provider), Path(directory) / "ledger")
+            settings = ModelSettings(provider="deepseek", model="deepseek-flash",
+                base_url="https://api.deepseek.com", api_key=SecretStr("never-send-rejection-key"))
+            with httpx.Client(transport=cap) as client:
+                for _ in range(8):
+                    client.post("https://api.deepseek.com/chat/completions", json=payload())
+                def factory(*_args, **_kwargs):
+                    return ChatDeepSeek(model="deepseek-flash", api_key=settings.api_key,
+                        base_url=settings.base_url, max_tokens=2048, max_retries=0,
+                        extra_body={"thinking": {"type": "disabled"}}, http_client=client)
+                common = dict(model_factory=factory, research_tools=[], load_codebase_structure=lambda: "main.py")
+                architect = durable_architect_runtime(settings, 2048, None, **common)
+                developer = durable_developer_runtime(settings, 2048, None, workspace_root=Path(directory), **common)
+                values = {"codebase_structure": "main.py", "implementation_research_scratchpad": [],
+                          "atomic_implementation_research": [], "file_content": "pass", "target_file": "main.py",
+                          "additional_context": "", "development_task": "Inspect the file"}
+                for call in (architect.conduct_research, developer.research_atomic_task):
+                    result = call(values)
+                    self.assertEqual(result.error_code.value, "model_request_limit_exceeded")
+                    self.assertIsNone(result.value)
+                    self.assertEqual(result.usage.status, UsageStatus.KNOWN)
+                    self.assertEqual(result.usage.cost_microusd, 0)
+                    self.assertEqual(result.usage.cost_source, "not_dispatched")
+                    self.assertNotIn("never-send-rejection-key", repr(result))
+            self.assertEqual(len(sent), 8)
+            self.assertEqual(cap.summary()["reserved_microcny"], 917504)
+            self.assertFalse(cap.summary()["unknown"])
+
     def test_payload_and_message_limits_admit_the_boundary_and_reject_one_more_byte(self):
         with tempfile.TemporaryDirectory() as directory:
             sent = []

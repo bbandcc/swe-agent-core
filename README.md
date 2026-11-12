@@ -11,6 +11,13 @@ seven of nine trials; both failures remain in the report. The peak-price
 conservative calculation was CNY 0.333800, with all candidate cleanup confirmed.
 This small related task set does not establish general benchmark performance.
 
+A later cohort solved three fixed function tasks in three fresh trials (23 actual
+requests; CNY 0.117052 peak-price conservative calculation). An earlier attempt
+stopped on authentication conditions with one unknown-cost request and two
+unstarted rows; those rows remain in the [follow-up data](docs/evaluation-functions.json).
+The cumulative reservation of CNY 2.752512 includes that unknown request and is
+below the authorized CNY 3 cap. These are separate custom-task observations.
+
 Windows AppContainer execution is withdrawn: both low-level entries and the
 task/frozen/fuzzysearch/forbiddenfruit preparation entries refuse before their
 exclusive preparation, ACL or spawn. Historical native success and downstream
