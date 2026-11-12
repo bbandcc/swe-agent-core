@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "55cf15f4c60b96ab024ec8e30609a2717e6f46a9",
+  "source_commit": "c45ef70688ff09a91e3d40e04bab4decebf6d585",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -628,8 +628,8 @@
       "bytes": 24182
     },
     "tests/evaluation/test_windows_preparation_withdrawal.py": {
-      "sha256": "5432ad1efe3da58478c0a966e37e6309df909adfe5b470f5d0e8fa807af6b587",
-      "bytes": 17277
+      "sha256": "6d81d6375653039e65c428680546e1761269d17ec274bec264421f3b1e99e1bf",
+      "bytes": 17610
     },
     "tests/evaluation/test_windows_profile_withdrawal.py": {
       "sha256": "5b5bd90a69c73009bb7ed3266e20c8022893002a1a15d369dab155cfce4d3f5c",

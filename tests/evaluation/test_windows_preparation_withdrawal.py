@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -83,7 +84,7 @@ class PreparationWithdrawalTests(unittest.TestCase):
             "oracle": {"test_files": [{"path": "tests/test_app.py"}]},
         }
 
-    def invoke(self, callback, **arguments):
+    def invoke(self, callback, *, platform_name="nt", **arguments):
         entered = []
         code = callback.__code__
         previous = sys.getprofile()
@@ -92,7 +93,12 @@ class PreparationWithdrawalTests(unittest.TestCase):
             if event == "call" and frame.f_code is code:
                 entered.append(callback.__module__ + "." + callback.__name__)
 
-        with forbid_preparation() as events:
+        # Emulate only this entry's OS discriminator. Changing global os.name
+        # would also change pathlib's host paths on a Linux test runner.
+        module = sys.modules[callback.__module__]
+        with forbid_preparation() as events, patch.object(
+            module, "os", SimpleNamespace(name=platform_name)
+        ):
             sys.setprofile(trace)
             try:
                 result = callback(**arguments)
@@ -226,8 +232,8 @@ class PreparationWithdrawalTests(unittest.TestCase):
             (fruit.build_pinned_forbiddenfruit_wheel, self.builder_arguments(task=None)),
         )
         for entry, arguments in requests:
-            with self.subTest(entry=entry.__name__), patch.object(os, "name", "posix"):
-                events, result = self.invoke(entry, **arguments)
+            with self.subTest(entry=entry.__name__):
+                events, result = self.invoke(entry, platform_name="posix", **arguments)
             self.assertEqual(events, [])
             self.assertTrue(result.cleanup_complete)
             if entry is tasks.execute_isolated_task:
