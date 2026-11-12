@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import os
 import shutil
+import shlex
 import subprocess
 import tempfile
 import unittest
@@ -77,6 +78,24 @@ class TaskWorkspaceTests(unittest.TestCase):
             access_policy=access_policy,
         )
 
+    def test_materialization_does_not_execute_inherited_checkout_hooks(self) -> None:
+        # Owned, inert control: any hook execution only writes this marker.
+        hooks = self.root / "inherited-hooks"
+        hooks.mkdir()
+        marker = self.root / "hook-was-executed"
+        hook = hooks / "post-checkout"
+        hook.write_text("#!/bin/sh\nprintf executed > " + shlex.quote(marker.as_posix()) + "\n", encoding="utf-8")
+        hook.chmod(0o755)
+        configuration = self.root / "inherited.gitconfig"
+        configuration.write_text('[core]\n hooksPath = "' + hooks.as_posix() + '"\n', encoding="utf-8")
+        with patch.dict(os.environ, {"GIT_CONFIG_GLOBAL": str(configuration), "GIT_CONFIG_NOSYSTEM": "1"}):
+            result = self._prepare(access_policy=WorkspaceAccessPolicy.default())
+        self.assertTrue(result.ready, result.failure)
+        self.addCleanup(result.workspace.cleanup)
+        self.assertFalse(marker.exists(), "Snapshot materialization executed an inherited Git hook")
+        self.assertEqual((result.workspace.root / "src/answer.txt").read_bytes(), b"baseline\n")
+        self.assertIsNone(result.workspace.cleanup())
+
     def test_default_policy_is_explicit_and_omission_is_rejected(self) -> None:
         prepared = prepare_task_workspace(
             repository_root=self.repository,
@@ -102,6 +121,69 @@ class TaskWorkspaceTests(unittest.TestCase):
                 runtime_root=missing_runtime,
             )
         self.assertFalse(missing_runtime.exists())
+
+    def test_materialization_ignores_environment_config_and_templates(self) -> None:
+        hooks = self.root / "template" / "hooks"
+        hooks.mkdir(parents=True)
+        marker = self.root / "template-hook-executed"
+        hook = hooks / "post-checkout"
+        hook.write_text("#!/bin/sh\nprintf executed > " + shlex.quote(marker.as_posix()) + "\n", encoding="utf-8")
+        hook.chmod(0o755)
+        for source, variables in (
+            ("inline", {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "core.hooksPath", "GIT_CONFIG_VALUE_0": str(hooks)}),
+            ("template", {"GIT_TEMPLATE_DIR": str(hooks.parent)}),
+            ("redirect", {"GIT_DIR": str(self.root / "missing.git"), "GIT_WORK_TREE": str(self.root / "missing")}),
+        ):
+            with self.subTest(source=source), patch.dict(os.environ, variables):
+                result = self._prepare(access_policy=WorkspaceAccessPolicy.default())
+                self.assertTrue(result.ready, result.failure)
+                self.addCleanup(result.workspace.cleanup)
+                self.assertEqual((result.workspace.root / "src/answer.txt").read_bytes(), b"baseline\n")
+                self.assertFalse(marker.exists())
+                self.assertIsNone(result.workspace.cleanup())
+
+    def test_materialization_does_not_run_global_smudge_filter(self) -> None:
+        marker = self.root / "smudge-executed"
+        script = self.root / "smudge.sh"
+        script.write_text("#!/bin/sh\nprintf executed > " + shlex.quote(marker.as_posix()) + "\ncat\n", encoding="utf-8")
+        (self.repository / ".gitattributes").write_text("src/answer.txt filter=canary\n", encoding="utf-8")
+        self._git("add", ".gitattributes")
+        self._git("commit", "-qm", "filter data canary")
+        self.task["target"]["revision"] = self._git("rev-parse", "HEAD").stdout.decode().strip()
+        configuration = self.root / "filter.gitconfig"
+        configuration.write_text('[filter "canary"]\n smudge = sh ' + script.as_posix() + '\n required = true\n', encoding="utf-8")
+        with patch.dict(os.environ, {"GIT_CONFIG_GLOBAL": str(configuration)}):
+            result = self._prepare(access_policy=WorkspaceAccessPolicy.default())
+        self.assertTrue(result.ready, result.failure)
+        self.addCleanup(result.workspace.cleanup)
+        self.assertFalse(marker.exists())
+        self.assertEqual((result.workspace.root / "src/answer.txt").read_bytes(), b"baseline\n")
+
+    def test_pinned_revision_ignores_replace_refs(self) -> None:
+        (self.repository / "src/answer.txt").write_text("replacement\n", encoding="utf-8")
+        self._git("add", ".")
+        self._git("commit", "-qm", "replacement object")
+        replacement = self._git("rev-parse", "HEAD").stdout.decode().strip()
+        self._git("replace", self.revision, replacement)
+        result = self._prepare(access_policy=WorkspaceAccessPolicy.default())
+        self.assertTrue(result.ready, result.failure)
+        self.addCleanup(result.workspace.cleanup)
+        self.assertEqual((result.workspace.root / "src/answer.txt").read_bytes(), b"baseline\n")
+
+    def test_gitlinks_and_borrowed_objects_are_rejected_and_cleaned(self) -> None:
+        self._git("update-index", "--add", "--cacheinfo", "160000," + self.revision + ",vendor")
+        self._git("commit", "-qm", "gitlink canary")
+        self.task["target"]["revision"] = self._git("rev-parse", "HEAD").stdout.decode().strip()
+        result = self._prepare(access_policy=WorkspaceAccessPolicy.default())
+        self.assertFalse(result.ready)
+        self.assertEqual(result.failure.code, TaskWorkspaceErrorCode.UNSUPPORTED_ENTRY)
+        self.assertEqual(list(self.runtime_root.iterdir()), [])
+        self.task["target"]["revision"] = self.revision
+        (self.repository / ".git/objects/info/alternates").write_text(str(self.repository / ".git/objects") + "\n", encoding="utf-8")
+        result = self._prepare(access_policy=WorkspaceAccessPolicy.default())
+        self.assertFalse(result.ready)
+        self.assertEqual(result.failure.code, TaskWorkspaceErrorCode.UNSUPPORTED_ENTRY)
+        self.assertEqual(list(self.runtime_root.iterdir()), [])
 
     def test_invalid_policy_is_structured_before_workspace_copy(self) -> None:
         for policy in (None, object()):

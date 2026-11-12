@@ -15,6 +15,11 @@ from enum import Enum
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
 
+from agent.evaluation._snapshot_git import (
+    UnsupportedGitEntry,
+    checkout_snapshot,
+    revision_available,
+)
 from agent.workspace.paths import (
     WorkspaceRootError,
     canonical_workspace_relative_path,
@@ -30,7 +35,6 @@ _MAX_TREE_ENTRIES = 100_000
 _MAX_WORKSPACE_BYTES = 512 * 1024 * 1024
 _MAX_PATCH_FILE_BYTES = 16 * 1024 * 1024
 _MAX_PATCH_TOTAL_BYTES = 256 * 1024 * 1024
-_GIT_TIMEOUT_SECONDS = 30.0
 
 
 class TaskWorkspaceErrorCode(str, Enum):
@@ -219,7 +223,7 @@ def prepare_task_workspace(
             ),
         )
 
-    if _git_exit(repository, ["cat-file", "-e", f"{revision}^{{commit}}"]):
+    if not revision_available(repository, revision):
         return TaskWorkspaceResult(
             None,
             TaskWorkspaceFailure(
@@ -346,38 +350,10 @@ def _checkout_snapshot(
     oracle_paths: tuple[str, ...],
     scope: dict[str, str],
 ) -> dict[str, tuple[int, str, str]]:
-    clone = subprocess.run(
-        ["git", "clone", "--no-hardlinks", "--local", "--no-checkout", str(repository), str(root)],
-        cwd=root.parent,
-        stdin=subprocess.DEVNULL,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        timeout=_GIT_TIMEOUT_SECONDS,
-        check=False,
-        shell=False,
-    )
-    if clone.returncode != 0:
-        raise _materialize_failure(TaskWorkspaceErrorCode.ARCHIVE_FAILED)
-    for arguments in (
-        ["config", "core.autocrlf", "false"],
-        ["config", "core.eol", "lf"],
-        ["checkout", "--quiet", "--detach", revision],
-    ):
-        result = subprocess.run(
-            ["git", "-C", str(root), *arguments],
-            cwd=root.parent,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=_GIT_TIMEOUT_SECONDS,
-            check=False,
-            shell=False,
-        )
-        if result.returncode != 0:
-            raise _materialize_failure(TaskWorkspaceErrorCode.ARCHIVE_FAILED)
-    actual_revision = _git_text(root, ["rev-parse", "HEAD"])
-    if actual_revision != revision:
-        raise _materialize_failure(TaskWorkspaceErrorCode.ARCHIVE_FAILED)
+    try:
+        checkout_snapshot(repository, revision, root)
+    except UnsupportedGitEntry:
+        raise _materialize_failure(TaskWorkspaceErrorCode.UNSUPPORTED_ENTRY) from None
     git_metadata = root / ".git"
     if git_metadata.is_symlink() or not git_metadata.is_dir():
         raise _materialize_failure(TaskWorkspaceErrorCode.UNSUPPORTED_ENTRY)
@@ -481,43 +457,6 @@ def _read_limited_file(path: Path) -> tuple[bytes, TaskWorkspaceFailure | None]:
         return content, None
     except OSError:
         return b"", _failure(TaskWorkspaceErrorCode.ARCHIVE_FAILED)
-
-
-def _git_exit(repository: Path, arguments: list[str]) -> bool:
-    try:
-        return subprocess.run(
-            ["git", *arguments],
-            cwd=repository,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=_GIT_TIMEOUT_SECONDS,
-            check=False,
-            shell=False,
-        ).returncode != 0
-    except (OSError, subprocess.SubprocessError):
-        return True
-
-
-def _git_text(repository: Path, arguments: list[str]) -> str | None:
-    try:
-        result = subprocess.run(
-            ["git", *arguments],
-            cwd=repository,
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            timeout=_GIT_TIMEOUT_SECONDS,
-            check=False,
-            shell=False,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if result.returncode != 0:
-        return None
-    try:
-        return result.stdout.decode("ascii").strip()
-    except UnicodeError:
-        return None
 
 
 def _is_junction(path: Path) -> bool:

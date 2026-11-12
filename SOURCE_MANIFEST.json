@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "9d70b40fd3b2c34af2f5929b24b52ab9fe6259d9",
+  "source_commit": "0f92759144abbf54bd14dd69b30f94851bc403b3",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -183,6 +183,10 @@
       "sha256": "f478e4733fb68f8bb07e5c81620eef23702fe34bc99872cfae791404f4a517e7",
       "bytes": 27834
     },
+    "agent/evaluation/_snapshot_git.py": {
+      "sha256": "394e0d725ee5a3e6884da5176219e5be8e62d62f4b5c0c0e1c4455e35107a32a",
+      "bytes": 3495
+    },
     "agent/evaluation/_windows_appcontainer.py": {
       "sha256": "707599074384fe5c8e790c6df91dc4d2e9ce491bdec92f21ec56e67b7df80573",
       "bytes": 36856
@@ -227,6 +231,14 @@
       "sha256": "d95ba0ef6ce94ae16ceb392fd38718cc14b5b9dbff557f674fdd89db393e067d",
       "bytes": 21757
     },
+    "agent/evaluation/swebench_grading.py": {
+      "sha256": "c5ec7a9bc80ffe2c26142852f879e9ab7a6624648a4f32cc8c9bcaa5de909de6",
+      "bytes": 4474
+    },
+    "agent/evaluation/swebench_instance.py": {
+      "sha256": "0edf9e270909ac1fee730dd2658b065b603ce498972481c2787431ffeceb4c01",
+      "bytes": 11081
+    },
     "agent/evaluation/task_execution.py": {
       "sha256": "453fa4d7f1a7f8af1027da92fb7e744ff8101dee09e0f13e8ae9043d4bb707d6",
       "bytes": 10606
@@ -236,8 +248,8 @@
       "bytes": 4725
     },
     "agent/evaluation/task_workspace.py": {
-      "sha256": "c55d4da918ded5ab0b8eb31ecdd5a4694779e48418374e5f169a6863b413aae7",
-      "bytes": 22666
+      "sha256": "cb663fa251759eb2dfde994a9510ed49727609b847bf90ee6c1e41c16299a76f",
+      "bytes": 20641
     },
     "agent/evaluation/windows_sandbox.py": {
       "sha256": "533d975e5fa83b0aecf2913f1ad7e2d6d3e4c31413f13301cd04f8a030269388",
@@ -436,8 +448,12 @@
       "bytes": 5943
     },
     "docs/STATUS.md": {
-      "sha256": "9db6757e1fc939998fa72b6d7fb1d8f8cb1201c41ed115ce8f167add674ad69a",
-      "bytes": 4129
+      "sha256": "048b1e4f625c4b5c04c2bfd0d559fb1fe1313afc70008f2da817d455d82d1a4f",
+      "bytes": 4339
+    },
+    "docs/SWEBENCH.md": {
+      "sha256": "4e1e347990d0f1deda2ae759df01736e6f08a774a8daa95e97adb3048dfb4a76",
+      "bytes": 2757
     },
     "docs/evaluation-functions.json": {
       "sha256": "fdd447f93c80bb3453b31ed741365b8b592e204a258e1b070d730d33263cf2e9",
@@ -450,6 +466,10 @@
     "evals/s5a/tasks.v1.json": {
       "sha256": "6ba65f8dfe4ec5f05467b2a6af6633ce86c7d09c4657b3e51fe4714fa2ebe002",
       "bytes": 16867
+    },
+    "evals/swebench/sympy__sympy-20590.json": {
+      "sha256": "1effaf8b16842172fe86cd946bab923d986456f02d88e1b438be8b923024043a",
+      "bytes": 4926
     },
     "helpers/prompts.py": {
       "sha256": "94d7f1a4329a65920786c5814efc1e063c46345986e41fb0608e5e3c76a3fe4c",
@@ -619,6 +639,10 @@
       "sha256": "9eb3ac4103e3a39ef5d830b73edb4a11956d2964f091f3ab5d4fc8bbab2cd20b",
       "bytes": 21749
     },
+    "tests/evaluation/test_swebench_instance.py": {
+      "sha256": "bbeb2afbe03f9f7b53cc1fa8ad4ef03e53260025005d6296998dca3818dd3137",
+      "bytes": 11153
+    },
     "tests/evaluation/test_task_execution.py": {
       "sha256": "ac27dbc9e7f56162fcfe09c2104ca8908f8f81c0aed0db456458bed8987eb8c0",
       "bytes": 26187
@@ -628,8 +652,8 @@
       "bytes": 10959
     },
     "tests/evaluation/test_task_workspace.py": {
-      "sha256": "e5d03481c2a6d59ae1a6c6a248c1b33643e467c45a86f83163855a7d96f7aacb",
-      "bytes": 24182
+      "sha256": "8fffa060f6d91cda59ee7cb89ba16ca10e774c3d1e3a58d7e9b7ca214d5a0d1d",
+      "bytes": 29524
     },
     "tests/evaluation/test_windows_preparation_withdrawal.py": {
       "sha256": "6d81d6375653039e65c428680546e1761269d17ec274bec264421f3b1e99e1bf",
@@ -744,8 +768,8 @@
       "bytes": 11154
     },
     "tests/test_s5d2_ci_contract.py": {
-      "sha256": "610fdeb21a4eefdce3bc7c376db584c0e0504e38b98a400edb38098c9e9b07be",
-      "bytes": 10990
+      "sha256": "224a7bd50230f83b033028d194271562410fc090af6b5734f8dd45f0322e9e22",
+      "bytes": 11634
     },
     "tests/test_sdist_review_evidence.py": {
       "sha256": "d591c719985215d5f3f8bbfe2020eaf9f8c445a4d6c27e3fe4a498b342295a15",
