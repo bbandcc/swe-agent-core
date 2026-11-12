@@ -20,6 +20,20 @@ CONTROL_ENV = {"PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTHONDONTWRITEBYTECODE":
 
 
 class PilotTaskTests(unittest.TestCase):
+    def test_trial_alias_uses_one_canonical_root_for_preparation_and_loading(self):
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            (parent / "unused").mkdir()
+            alias = parent / "unused" / ".." / "trial"
+            prepared = prepare_trial(alias)
+            root, loaded = load_trial(alias)
+            self.assertEqual(root, (parent / "trial").resolve(strict=True))
+            self.assertEqual(loaded, prepared)
+            self.assertEqual(set(prepared["frozen_inputs"]), {
+                "G/main.py", "observer/O/control_runtime.py", "observer/O/test_oracle.py",
+                "observer/O/pytest.ini", "observer/O/config.json",
+            })
+
     def test_recomputed_digest_cannot_change_fixed_scope_image_retry_or_limits(self):
         mutations = ({"image": "python:latest"}, {"allowed_edit_scope": ["other.py"]},
                      {"automatic_retry": True}, {"automatic_resume": True},

@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "c45ef70688ff09a91e3d40e04bab4decebf6d585",
+  "source_commit": "e5dd65678dac09fc96010735db9de7a66918e9bd",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -200,8 +200,8 @@
       "bytes": 29229
     },
     "agent/evaluation/model_pilot.py": {
-      "sha256": "5f489ac97fc3bd685b8e7275ecdfbdce596c0c04672278022a5ccffa79a1e43d",
-      "bytes": 7538
+      "sha256": "ae9ab7a86c0f24f216f65a3ed3817e262994ef55aaa97510b8a9fb3ca8e0057f",
+      "bytes": 7575
     },
     "agent/evaluation/pilot_control.py": {
       "sha256": "4f8cd26a5f982ae66292318bc2790029235f19dbcaa7adbd210d859beb704515",
@@ -600,20 +600,20 @@
       "bytes": 16283
     },
     "tests/evaluation/test_pilot_tasks.py": {
-      "sha256": "73515d3781188e075c5d1e3927107af5b31a4de088a51807e8a716cd5c7bd430",
-      "bytes": 7307
+      "sha256": "e693c71b619854567a2b8efc8df3b9deb8349a25658de492eb7bf049fbc0ce82",
+      "bytes": 8029
     },
     "tests/evaluation/test_pilot_workflow.py": {
       "sha256": "ec1ac05b8b84b0225c3c650a68c4757475378caa98513cee6cfed9d6a3bd9da2",
       "bytes": 16712
     },
     "tests/evaluation/test_python_toolchain.py": {
-      "sha256": "ba57d4b7a9b309d1d14320c6eaa63849a95550cf521c8ba157b21b9c66ade3a0",
-      "bytes": 17153
+      "sha256": "0cbfcd59d83a4d87ab3ed8a41a722bf0565351101de78cc686a0ffcf083336e6",
+      "bytes": 17174
     },
     "tests/evaluation/test_python_toolchain_boundary.py": {
-      "sha256": "7b4f9bbb1191385125164dd2402d992a32dd4dce42584effb09ace5223b16bd9",
-      "bytes": 21728
+      "sha256": "9eb3ac4103e3a39ef5d830b73edb4a11956d2964f091f3ab5d4fc8bbab2cd20b",
+      "bytes": 21749
     },
     "tests/evaluation/test_task_execution.py": {
       "sha256": "ac27dbc9e7f56162fcfe09c2104ca8908f8f81c0aed0db456458bed8987eb8c0",

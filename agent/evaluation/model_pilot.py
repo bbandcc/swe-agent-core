@@ -51,6 +51,7 @@ def prepare_trial(output: str | Path, *, timeout_seconds: float = 1800,
     task = get_pilot_task(task_id)
     root = Path(output).absolute()
     root.mkdir(parents=True, exist_ok=False)
+    root = root.resolve(strict=True)
     setup = build_observer(root / "observer", IMAGE, generation_root=root / "G", task_id=task_id)
     (setup.generation_root / "main.py").write_bytes(task.original)
     frozen = {p.relative_to(root).as_posix(): _hash(p.read_bytes())

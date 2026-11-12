@@ -136,7 +136,7 @@ class ToolchainBoundaryTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix="f2-toolchain-")
         self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(temporary.name).resolve(strict=True)
         self.source = self.root / "source"
         self.source.mkdir()
         (self.source / "Lib/encodings").mkdir(parents=True)

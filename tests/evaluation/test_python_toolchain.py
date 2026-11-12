@@ -15,7 +15,7 @@ class PythonToolchainDependencyStagingTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="s5b-python-stage-")
         self.addCleanup(self.temporary.cleanup)
-        self.root = Path(self.temporary.name)
+        self.root = Path(self.temporary.name).resolve(strict=True)
         self.python = self.root / "cpython"
         (self.python / "Lib" / "encodings").mkdir(parents=True)
         (self.python / "Lib" / "encodings" / "__init__.py").write_text("", encoding="utf-8")
