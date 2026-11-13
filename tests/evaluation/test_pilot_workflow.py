@@ -83,6 +83,13 @@ class PilotAssemblyTests(unittest.TestCase):
         (setup.observer_root / "test_oracle.py").write_text("import unknown_plugin", encoding="utf-8")
         self.assertFalse(runner.permits(spec, setup.generation_root))
 
+    def test_mutating_public_spec_cannot_admit_a_different_host_command(self):
+        setup, spec, runner = self.fixture()
+        changed = replace(spec, argv=(sys.executable, "-c", "print('authored benign control')"), report_path=None)
+        self.assertFalse(runner.permits(changed, setup.generation_root))
+        runner.spec = changed
+        self.assertFalse(runner.permits(changed, setup.generation_root))
+
     def test_arbitrary_plugin_test_path_or_pytest_configuration_is_refused(self):
         setup, spec, runner = self.fixture()
         files = {p.name: p.read_bytes() for p in setup.observer_root.iterdir()}

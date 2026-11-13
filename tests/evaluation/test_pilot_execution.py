@@ -17,6 +17,18 @@ ENVIRONMENT = {"AGENT_MODEL_PROVIDER": "deepseek", "AGENT_MODEL": "deepseek-flas
 
 
 class PilotExecutionAdmissionTests(unittest.TestCase):
+    def test_network_transport_cannot_masquerade_as_a_no_fee_control(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "trial"
+            prepare_trial(root)
+            with httpx.HTTPTransport(retries=0) as transport, patch(
+                "agent.evaluation.pilot_execution._docker_ready", side_effect=AssertionError("No dispatch is allowed")):
+                result = run_trial(root, environ=ENVIRONMENT, transport=transport)
+            self.assertEqual(result["status"], "NOT_STARTED")
+            self.assertEqual(result["not_started_reason"], "UNSUPPORTED_CONTROL_TRANSPORT")
+            self.assertFalse((root / "spend.jsonl").exists())
+
     def test_missing_credential_consumes_trial_without_starting_or_creating_a_charge_ledger(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "trial"

@@ -697,9 +697,10 @@ class VerificationController:
 
     def _dispatch(self, spec: VerificationSpec) -> VerificationResult | VerificationSummary:
         from agent.evaluation.pilot_workflow import PilotAdmission
+        from agent.evaluation.swebench_cooperative import CooperativeAdmission
 
         admitted = (
-            type(self._reviewed_inputs) in {ReviewedVerificationInputs, PilotAdmission}
+            type(self._reviewed_inputs) in {ReviewedVerificationInputs, PilotAdmission, CooperativeAdmission}
             and self._reviewed_inputs.permits(spec, self._runner, self._workspace_root)
         )
         if not admitted:

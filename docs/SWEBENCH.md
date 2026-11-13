@@ -12,7 +12,19 @@
 
 Git 工作区现已隔离继承配置、hooks、模板、filters、fsmonitor 和 replace refs，拒绝借用对象和非普通 tree mode。该保护仍假定可信 Git 和无并发恶意写入者；不是任意对象库的 OS 沙箱、clone 过程硬配额或 blob 字节精确物化。30 秒父 Git timeout 也不是通用进程树截止。
 
-真实模型评测仍需独立完成可信执行/报告准入、多文件与依赖环境控制、预登记预算和重复运行。只读测试与候选处于同一 Python 进程时仍可能被 monkeypatch 或伪造 stdout；固定原始/gold/wrong 控制不能消除这项限制。旧 Windows profile 保持撤回。本轮不新增模型费用。
+已新增独立的协作式研究入口 `scripts/swebench_pilot.py`：真实官方源码/依赖与 G/O 分离、固定 host pytest observer、受限Docker、原 Architect→Developer/S1/SQLite/轨迹与HTTP人民币guard。固定源码从官方archive准备，不伪造Git提交，也不声称已取得base Git对象。源码、测试、依赖与observer身份分别检查，候选只可改变一个有界普通UTF-8文件。
+
+研究结果恒标记 `COOPERATIVE_SWEBENCH_*`、`hinted_scope=true`、`adversarial_proof=false`。只读测试与候选处于同一Python进程仍可能被monkeypatch或伪造stdout；严格F2P/P2P只核验结构和状态，不提供反作弊证明。该通道由用户明确选择，不改变默认生产宿主准入或恢复旧Windows profile。
+
+CLI 的 `--prepare` 不联网、不读取凭据或调用Docker；`--check` 消费一次检查记录且不发模型请求；`--run` 必须显式提供新的预算，先通过官方输入、clean源码、当日价格和模型配置门槛。缺条件返回 `NOT_STARTED`。旧3元批次不自动续用；单次八请求峰值总预留0.917504元，上限1元，无HTTP重试或整trial自动恢复。S2有限regression repair保留，总请求上限不变。源码入口需要项目数据和锁环境，不是wheel console命令。
+
+```text
+uv run --locked python scripts/swebench_pilot.py --help
+uv run --locked python scripts/swebench_pilot.py --prepare --output .research-cache/cooperative-check --artifacts-root .research-cache/swebench-official-research
+uv run --locked python scripts/swebench_pilot.py --check --output .research-cache/cooperative-check --env-file .env.local
+```
+
+检查后的目录不能重用。真实运行须另建fresh目录、完成当版无模型控制并获得新预算，再显式传 `--new-batch-budget-cny` 和 `--max-trial-cny`；不要把密钥写在命令行或发送到聊天。输入需预先在artifact目录准备 `sympy-base.tar.gz`、`mpmath-1.3.0-py3-none-any.whl` 与规范化官方row；实现中的PINS逐字节校验，拒绝自动替换或网络fallback。
 
 本地数据合同检查：
 
@@ -20,4 +32,4 @@ Git 工作区现已隔离继承配置、hooks、模板、filters、fsmonitor 和
 uv run --locked python -m unittest -v tests.evaluation.test_swebench_instance
 ```
 
-项目全量支持检查仍采用 CONTRIBUTING.md 的两个正式 suite。固定控制日志属于对应输入、环境和版本，不能替代新候选的执行证据，也不是整体 SWE-bench resolved rate。
+项目全量支持检查仍采用 CONTRIBUTING.md 的两个正式 suite。实际控制及模型成绩需按准确源码版本单独记录；固定控制不能替代新候选的执行证据，也不是整体SWE-bench resolved rate。多文件/新依赖/无提示holdout仍不在此固定一文件研究通道的支持范围。

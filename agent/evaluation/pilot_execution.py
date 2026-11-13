@@ -63,8 +63,8 @@ def _docker_ready(image: str) -> bool:
     return True
 
 
-def run_trial(output: str | Path, *, environ=None, transport: httpx.BaseTransport | None = None) -> dict:
-    """Consume a fresh trial exactly once. An injected transport is a control."""
+def run_trial(output: str | Path, *, environ=None, transport: httpx.MockTransport | None = None) -> dict:
+    """Consume once; a MockTransport handler must be an author-reviewed fixture."""
     if (Path(output).resolve(strict=True) / "execution.json").exists():
         raise FileExistsError("A trial attempt already exists; resume is not supported.")
     root, plan = load_trial(output)
@@ -83,6 +83,9 @@ def run_trial(output: str | Path, *, environ=None, transport: httpx.BaseTranspor
     source = os.environ if environ is None else environ
     secrets = KnownSecretFilter(tuple(value for key, value in source.items() if key.endswith("_API_KEY")))
     try:
+        if transport is not None and type(transport) is not httpx.MockTransport:
+            row["not_started_reason"] = "UNSUPPORTED_CONTROL_TRANSPORT"
+            return row
         settings = model_settings(source)
         if settings.api_key is None:
             row["not_started_reason"] = "MISSING_CREDENTIAL"

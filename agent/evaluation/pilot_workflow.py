@@ -75,6 +75,7 @@ class PilotRunner:
                 or not IMAGE_PATTERN.fullmatch(image)):
             raise ValueError("Pilot generation, observer and receipts must be separate.")
         self.spec, self.image, self.task_id = spec, image, task_id
+        self._fixed_spec = spec
         if (not 2 <= spec.timeout_seconds <= 120
                 or spec != pilot_verification_spec(self.execution_root, timeout_seconds=spec.timeout_seconds)
                 or os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") != "1"
@@ -127,8 +128,9 @@ class PilotRunner:
                     or self._runner is not self._fixed_runner or type(self._runner) is not VerificationRunner
                     or self._runner.execution_root != self.execution_root or self.run != self._fixed_run
                     or _digest(sorted(os.environ.items())) != self._environment
-                    or not 0 < spec.timeout_seconds <= self.spec.timeout_seconds
-                    or replace(spec, timeout_seconds=self.spec.timeout_seconds) != self.spec
+                    or self.spec != self._fixed_spec
+                    or not 0 < spec.timeout_seconds <= self._fixed_spec.timeout_seconds
+                    or replace(spec, timeout_seconds=self._fixed_spec.timeout_seconds) != self._fixed_spec
                     or not self._observer_files or len(self._observer_files) > 8):
                 return False
             resolver = WorkspacePathResolver(self.execution_root)
@@ -208,54 +210,11 @@ class PilotRunner:
         )
 
     def bind_attempts(self, result: "DurableRunResult", *, runtime_root: str | Path) -> list[dict]:
-        """Associate original SQLite results, never infer phase from call order."""
-        from agent.runtime.identity import RunIdentity
-        from agent.runtime.trajectory import RunRecord, AuditStatus, record_ref_for
-
-        state = result.state or {}
-        if Path(runtime_root).resolve(strict=True) != self.runtime_root:
-            raise ValueError("Pilot records and artifacts must share the configured runtime root.")
-        identity = state.get("run_identity")
-        if (not isinstance(identity, RunIdentity) or identity.run_id != result.run_id
-                or identity.workspace.canonical_root != str(self.generation_root)
-                or result.audit_incomplete or not result.record_ref
-                or result.record_ref != record_ref_for(run_id=identity.run_id,
-                    task_id=identity.task_id, thread_id=identity.thread_id)):
-            raise ValueError("Pilot run identity or audit reference is inconsistent.")
-        resolved = WorkspacePathResolver(runtime_root).resolve_file(result.record_ref)
-        if (not resolved.ok or not has_single_regular_file_link(resolved.path)
-                or resolved.path.stat().st_size > 256 * 1024):
-            raise ValueError("Pilot original RunRecord is unavailable.")
-        record = RunRecord.from_dict(json.loads(resolved.path.read_text(encoding="utf-8")))
-        if (record.identity != {"run_id": identity.run_id, "thread_id": identity.thread_id,
-                "task_id": identity.task_id, "workspace": {"canonical_root": identity.workspace.canonical_root,
-                "root_digest": identity.workspace.root_digest}}
-                or record.audit_status is not AuditStatus.COMPLETE
-                or record.runtime_status != result.status.value):
-            raise ValueError("Pilot RunRecord does not belong to the same run/task/thread.")
-        attempts = state.get("verification_attempts", ())
-        if any(a.run_id != identity.run_id or a.task_id != identity.task_id for a in attempts):
-            raise ValueError("Pilot verification attempts belong to another identity.")
-        bound = []
-        for receipt in self.receipts:
-            token = "pilot_receipt=" + receipt["receipt_id"]
-            matches = [a for a in attempts if a.result is not None and a.run_id == result.run_id
-                       and token in a.result.message.splitlines()]
-            if len(matches) != 1 or _digest(asdict(matches[0].result)) != receipt["result_digest"]:
-                raise ValueError("Pilot receipt does not bind exactly one original attempt.")
-            attempt = matches[0]
-            bound.append({"receipt": receipt, "attempt_id": attempt.attempt_id,
-                          "phase": attempt.phase, "run_id": result.run_id,
-                          "task_id": attempt.task_id, "repair_attempt": attempt.repair_attempt,
-                          "record_ref": result.record_ref})
-        if len(bound) != len(attempts) or result.audit_incomplete or not result.record_ref:
-            raise ValueError("Pilot audit is incomplete.")
-        if state.get("acceptance") is not None and state["acceptance"].accepted:
-            post = [item for item in bound if item["phase"] == "post"]
-            final = max(post, key=lambda item: item["repair_attempt"]) if post else None
-            if final is None or hashlib.sha256(self._source()).hexdigest() != final["receipt"]["source_hash"]:
-                raise ValueError("Final source differs from the last valid post check.")
-        return bound
+        """Bind original attempts without inferring phase from invocation order."""
+        from agent.evaluation.attempt_receipts import bind_attempt_receipts
+        return bind_attempt_receipts(result, runtime_root=runtime_root,
+            configured_runtime_root=self.runtime_root, generation_root=self.generation_root,
+            receipts=self.receipts, source_reader=self._source, receipt_prefix="pilot_receipt=")
 
 
 class PilotAdmission:

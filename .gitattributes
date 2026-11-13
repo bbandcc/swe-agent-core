@@ -2,3 +2,4 @@ tests/tools/fixtures/*.js text eol=lf
 tests/tools/fixtures/*.jsx text eol=lf
 tests/tools/fixtures/*.ts text eol=lf
 tests/tools/fixtures/*.tsx text eol=lf
+research/swebench-20261112/run_fixed_controls.py text eol=lf
