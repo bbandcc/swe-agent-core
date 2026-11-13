@@ -16,6 +16,8 @@ Git 工作区现已隔离继承配置、hooks、模板、filters、fsmonitor 和
 
 研究结果恒标记 `COOPERATIVE_SWEBENCH_*`、`hinted_scope=true`、`adversarial_proof=false`。只读测试与候选处于同一Python进程仍可能被monkeypatch或伪造stdout；严格F2P/P2P只核验结构和状态，不提供反作弊证明。该通道由用户明确选择，不改变默认生产宿主准入或恢复旧Windows profile。
 
+当前研究读取也限定到 `sympy/core/_print_helpers.py`：专用工具复用S4的路径授权、hash/version及staged working view，仅接受完整文件且不超过4096 UTF-8字节，拒绝其他路径、范围和分页。计划显式冻结该research_profile。原16KiB请求体和八请求费用guard不变；更明确的提示不能保证模型按预算成功，重复研究仍可能被拒绝，不自动重试。
+
 CLI 的 `--prepare` 不联网、不读取凭据或调用Docker；`--check` 消费一次检查记录且不发模型请求；`--run` 必须显式提供新的预算，先通过官方输入、clean源码、当日价格和模型配置门槛。缺条件返回 `NOT_STARTED`。旧3元批次不自动续用；单次八请求峰值总预留0.917504元，上限1元，无HTTP重试或整trial自动恢复。S2有限regression repair保留，总请求上限不变。源码入口需要项目数据和锁环境，不是wheel console命令。
 
 ```text

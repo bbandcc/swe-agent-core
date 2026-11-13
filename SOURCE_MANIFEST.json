@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "e11f609a6ef0ba1f6da639bb16d8fbb4aaaa0b19",
+  "source_commit": "18c2136f1f82e7362cb46ad9fe09ccf3d7df0fce",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -239,6 +239,10 @@
       "sha256": "d95ba0ef6ce94ae16ceb392fd38718cc14b5b9dbff557f674fdd89db393e067d",
       "bytes": 21757
     },
+    "agent/evaluation/swebench_context.py": {
+      "sha256": "a06ef503dfb7c18490fc1b3632ab3f9ffcf291a995569c5f0ecd399f6044ca51",
+      "bytes": 1994
+    },
     "agent/evaluation/swebench_cooperative.py": {
       "sha256": "a0d0de50fcf860d6d1a34dd7a05aeb9f3403d64ec18ed9c49d2f24310c7be52f",
       "bytes": 12820
@@ -260,8 +264,8 @@
       "bytes": 14544
     },
     "agent/evaluation/swebench_trial.py": {
-      "sha256": "1ffff5750dc72998f37d551687e7db54a5a7c6f291b55c63b089c199a5422bef",
-      "bytes": 17797
+      "sha256": "18fc43f3d1daee0c443c8cb01f3608798966e8276b9c45947a87722afdf2040e",
+      "bytes": 18527
     },
     "agent/evaluation/task_execution.py": {
       "sha256": "453fa4d7f1a7f8af1027da92fb7e744ff8101dee09e0f13e8ae9043d4bb707d6",
@@ -472,12 +476,12 @@
       "bytes": 5943
     },
     "docs/STATUS.md": {
-      "sha256": "11377bcdf8df46eba9b5e3d9e1a52dc50f6f1c58663c95643cb1d0cc88dc6bd1",
-      "bytes": 4570
+      "sha256": "10be770ab71ee60883a79919747cefb62a0b9ff7fd73435502b383eb6cf61305",
+      "bytes": 5216
     },
     "docs/SWEBENCH.md": {
-      "sha256": "56a4e1efa67810f2087b2a9221bed8943f13c97725eb35de703b99150ba3e150",
-      "bytes": 4602
+      "sha256": "344fb556b4130c478d7bab9a300f0a874e2f5137dd65f405765dec73015d4544",
+      "bytes": 5028
     },
     "docs/evaluation-functions.json": {
       "sha256": "fdd447f93c80bb3453b31ed741365b8b592e204a258e1b070d730d33263cf2e9",
@@ -684,8 +688,8 @@
       "bytes": 12062
     },
     "tests/evaluation/test_swebench_trial.py": {
-      "sha256": "f7d0f6eca64dddb0f303c328772af17de70e4883bb3c9b64d71ff6793c95c899",
-      "bytes": 15691
+      "sha256": "7e1a052304f78df85e26c486f927538b54710bd01e802100cd445e288f4db176",
+      "bytes": 20758
     },
     "tests/evaluation/test_task_execution.py": {
       "sha256": "ac27dbc9e7f56162fcfe09c2104ca8908f8f81c0aed0db456458bed8987eb8c0",

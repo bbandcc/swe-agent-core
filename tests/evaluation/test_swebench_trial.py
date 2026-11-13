@@ -29,6 +29,81 @@ ENVIRONMENT = {"AGENT_MODEL_PROVIDER": "deepseek", "AGENT_MODEL": "deepseek-flas
 
 
 class CooperativeTrialTests(unittest.TestCase):
+    def test_hinted_reader_limits_observations_to_the_same_source_identity(self):
+        from agent.evaluation.swebench_context import cooperative_source_reader
+        from agent.workspace import workspace_root_scope
+
+        _, setup, _ = self.prepare("hinted-reads")
+        with workspace_root_scope(setup.generation_root):
+            for path in (SOURCE, SOURCE.replace("/", "\\"), "./" + SOURCE, "workspace_repo/" + SOURCE):
+                result = cooperative_source_reader.invoke({"file_path": path})
+                self.assertTrue(result["ok"], result)
+                self.assertEqual(result["content"], "class Printable:\n    pass\n")
+                self.assertEqual(result["content_hash"], hashlib.sha256(result["content"].encode()).hexdigest())
+            for path in ("sympy/core/basic.py", "sympy/core/symbol.py", observer.TEST,
+                         "../" + SOURCE, str(setup.generation_root / SOURCE)):
+                result = cooperative_source_reader.invoke({"file_path": path})
+                self.assertFalse(result["ok"], result)
+                self.assertEqual(result["error_code"], "cooperative_read_scope")
+                self.assertNotIn("content", result)
+
+    def test_hinted_reader_refuses_ranges_oversize_and_protected_source(self):
+        from agent.evaluation.swebench_context import cooperative_source_reader, MAX_SOURCE_BYTES
+        from agent.workspace import WorkspaceAccessPolicy, workspace_root_scope
+
+        _, setup, _ = self.prepare("hinted-limits")
+        with workspace_root_scope(setup.generation_root):
+            for args in ({"start_byte": 1}, {"start_byte": True}, {"end_byte": 3000}, {"cursor": "page"}):
+                result = cooperative_source_reader.invoke({"file_path": SOURCE, **args})
+                self.assertFalse(result["ok"], result)
+                self.assertEqual(result["error_code"], "cooperative_read_range")
+            (setup.generation_root / SOURCE).write_bytes(b"a" * MAX_SOURCE_BYTES)
+            self.assertTrue(cooperative_source_reader.invoke({"file_path": SOURCE})["ok"])
+            (setup.generation_root / SOURCE).write_bytes(b"a" * (MAX_SOURCE_BYTES + 1))
+            result = cooperative_source_reader.invoke({"file_path": SOURCE})
+            self.assertEqual(result["error_code"], "cooperative_read_size")
+            self.assertNotIn("content", result)
+        with workspace_root_scope(setup.generation_root, access_policy=WorkspaceAccessPolicy(hidden_paths=(SOURCE,))):
+            result = cooperative_source_reader.invoke({"file_path": SOURCE})
+            self.assertFalse(result["ok"], result)
+            self.assertEqual(result["error_code"], "read_denied")
+
+    def test_hinted_reader_toolnode_preserves_staged_view_and_call_identity(self):
+        from langchain_core.messages import AIMessage
+        from langgraph.graph import StateGraph, START, END
+        from langgraph.prebuilt import ToolNode
+        from agent.common.tool_message_renderer import render_tool_messages
+        from agent.developer.state import SoftwareDeveloperState
+        from agent.editing import EditOperation, EditProposal, WorkspaceEditor
+        from agent.evaluation.swebench_context import cooperative_source_reader
+        from agent.workspace import workspace_root_scope
+
+        _, setup, _ = self.prepare("hinted-staged")
+        with workspace_root_scope(setup.generation_root):
+            editor = WorkspaceEditor(setup.generation_root)
+            transaction = editor.begin(SOURCE).transaction
+            staged = editor.stage(transaction, EditProposal(task_id="hinted.step-1", path=SOURCE,
+                operation=EditOperation.EDIT, old_text="pass", new_text="__slots__ = ()", base_hash=transaction.base_hash))
+            self.assertTrue(staged.ok, staged)
+            call = AIMessage(content="", tool_calls=[{"name": "get_raw_file_content", "args": {"file_path": SOURCE},
+                "id": "hinted-read-1", "type": "tool_call"}])
+            graph = StateGraph(SoftwareDeveloperState)
+            graph.add_node("tools", ToolNode([cooperative_source_reader], messages_key="atomic_implementation_research"))
+            graph.add_edge(START, "tools")
+            graph.add_edge("tools", END)
+            result = graph.compile().invoke({"atomic_implementation_research": [call],
+                "current_file_transaction": staged.transaction})
+            message = result["atomic_implementation_research"][-1]
+            evidence = json.loads(message.content)
+            self.assertEqual(message.tool_call_id, "hinted-read-1")
+            self.assertEqual(evidence["view"], "working")
+            self.assertIn("__slots__ = ()", evidence["content"])
+            self.assertEqual(evidence["content_hash"], hashlib.sha256(evidence["content"].encode()).hexdigest())
+            self.assertIn("pass", (setup.generation_root / SOURCE).read_text())
+            rendered = render_tool_messages([call, message])
+            self.assertIn("[UNTRUSTED EVIDENCE]", rendered[-1].content)
+            self.assertIn("__slots__ = ()", rendered[-1].content)
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
