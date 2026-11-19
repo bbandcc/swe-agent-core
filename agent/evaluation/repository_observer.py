@@ -129,6 +129,9 @@ def prepare_repository_observer(output, baseline, generation, dependencies, orac
     output = Path(output).absolute()
     if output.exists() or not output.parent.is_dir() or any(p.is_symlink() or p.is_junction() for p in (output, *output.parents)):
         raise ValueError('Fresh ordinary output root required')
+    # The dispatcher resolves its root. Freeze that same identity before paths
+    # enter JSON or setup state, including Windows 8.3 and lexical aliases.
+    output = output.parent.resolve(strict=True) / output.name
     if any(a == b or a in b.parents or b in a.parents for i, a in enumerate([output, *roots]) for b in [output, *roots][i+1:]):
         raise ValueError('Observer/source roots overlap')
     base, generation, deps, oracle = roots

@@ -32,9 +32,21 @@ class RepositoryObserverTests(unittest.TestCase):
         setup = self.prepare()
         compile((setup.observer_root/'test_observer.py').read_bytes(), 'fixed-observer', 'exec')
         runner = RepositoryObserverRunner(setup, runtime_root=self.root/'runtime')
-        self.assertTrue(RepositoryAdmission(runner).permits(runner.spec, runner, setup.generation_root))
+        from agent.verification.runner import VerificationRunner
+        self.assertTrue(RepositoryAdmission(runner).permits(runner.spec, runner, setup.generation_root),
+            {'setup_root':str(setup.observer_root),
+             'dispatch_root':str(VerificationRunner(setup.observer_root).execution_root)})
         (setup.observer_root/'test_observer.py').write_text('raise RuntimeError("modified")')
         self.assertFalse(runner.permits(runner.spec, setup.generation_root))
+
+    def test_prepared_output_uses_the_same_canonical_identity_as_dispatch(self):
+        (self.root/'ordinary-parent').mkdir()
+        requested=self.root/'ordinary-parent'/'..'/'canonical-run'
+        setup=prepare_repository_observer(requested,self.root/'B',self.root/'G',
+            self.root/'D',self.root/'oracle',self.task)
+        runner=RepositoryObserverRunner(setup,runtime_root=self.root/'runtime')
+        self.assertEqual(str(setup.root),str(requested.resolve(strict=True)))
+        self.assertTrue(RepositoryAdmission(runner).permits(runner.spec,runner,setup.generation_root))
 
     def test_parser_rejects_missing_duplicate_wrong_and_exit_inconsistent_cases(self):
         from agent.evaluation.repository_container import parse_cases

@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "bfa4af1c71cfd0fd55d5f177adbed637d7e2e647",
+  "source_commit": "c2fdf7bcc626435bea33b15a74400829021ca26f",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -268,8 +268,8 @@
       "bytes": 2513
     },
     "agent/evaluation/repository_observer.py": {
-      "sha256": "5ab456601cd5a3639f4b2b36cb02b6eb78161f87040ea780bde6bd45541d4355",
-      "bytes": 8963
+      "sha256": "829f4a272104bf8cd2207b7a836a3d6cd6d2aaf65e608dc91baad61800b16cee",
+      "bytes": 9180
     },
     "agent/evaluation/repository_runner.py": {
       "sha256": "78fc8caafe30c90b9d9761fb69e832a15f0d2ce3bd49852bdcc49b0b4c588353",
@@ -752,8 +752,8 @@
       "bytes": 7968
     },
     "tests/evaluation/test_repository_observer.py": {
-      "sha256": "96f84773e02e112fc347748fead58f7125d7ed8fbfc1bfb4c865315dbd13c3e9",
-      "bytes": 6768
+      "sha256": "e49ca6c06eb0aaf9bbfb847f32f8ff7a9d22ca78e947afbab34bb96d7a94134a",
+      "bytes": 7569
     },
     "tests/evaluation/test_repository_runtime.py": {
       "sha256": "6304f45885f8f6ce28dedfa813177a0ad98af2ef90748d8f692b2daa8a48732a",
