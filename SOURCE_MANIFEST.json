@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "c2fdf7bcc626435bea33b15a74400829021ca26f",
+  "source_commit": "01d1675d5809023284a5bac5df3999b5208b4285",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -226,6 +226,14 @@
     "agent/evaluation/model_pilot.py": {
       "sha256": "ae9ab7a86c0f24f216f65a3ed3817e262994ef55aaa97510b8a9fb3ca8e0057f",
       "bytes": 7575
+    },
+    "agent/evaluation/native_log.py": {
+      "sha256": "8b739b5e36f2601cf2b4560b88635f8fc63a2c936aa72a7c65906f2ec911ebe7",
+      "bytes": 6536
+    },
+    "agent/evaluation/native_task_spec.py": {
+      "sha256": "d84076b092895a0e7a419e0de9cd071c04c03120ecb64f2b81254ae6f925c16f",
+      "bytes": 10022
     },
     "agent/evaluation/pilot_control.py": {
       "sha256": "51a247d790950c6050dd9cbf68714d7b72c2d8f682085f277bda958b5c4a677e",
@@ -520,8 +528,8 @@
       "bytes": 5943
     },
     "docs/EXPANSION.md": {
-      "sha256": "276af280fecbcec6ee01be36e407688193f77f6d34114c7b17e6478f2716e2cc",
-      "bytes": 2526
+      "sha256": "a208e5b89bcf7445b1cf756e9731a9bdc4b058773530061022b9c7a00de6bda9",
+      "bytes": 3109
     },
     "docs/STATUS.md": {
       "sha256": "10be770ab71ee60883a79919747cefb62a0b9ff7fd73435502b383eb6cf61305",
@@ -710,6 +718,14 @@
     "tests/evaluation/test_model_pilot.py": {
       "sha256": "3a85aab1dfb13d46a5e82c135bee71e07895e6dffa040af7e74f9202b5c1079c",
       "bytes": 5790
+    },
+    "tests/evaluation/test_native_log.py": {
+      "sha256": "35b1c35ed567a71eeaa945089418c9ed6f45289af40a81be5a70875d85920da7",
+      "bytes": 4787
+    },
+    "tests/evaluation/test_native_task_spec.py": {
+      "sha256": "3f89894a01312a87f5cd97a4e433a0cb328545b5e3cad2543d2e0d54e2bf4751",
+      "bytes": 4974
     },
     "tests/evaluation/test_pilot_control.py": {
       "sha256": "a432859dfae3b0715df34c30e236f13ebe673a0f2bc2e89bd49e75c66d6c5954",
@@ -908,8 +924,8 @@
       "bytes": 11154
     },
     "tests/test_s5d2_ci_contract.py": {
-      "sha256": "02873cc40af95694e4fc98bfe9594edaa30169f4c04cf206ea98761d7fd96eda",
-      "bytes": 12205
+      "sha256": "6cf6260f594eda440e50a79d964c1c0c8b841083b7003d906b56275e58198ad9",
+      "bytes": 12291
     },
     "tests/test_sdist_review_evidence.py": {
       "sha256": "d591c719985215d5f3f8bbfe2020eaf9f8c445a4d6c27e3fe4a498b342295a15",

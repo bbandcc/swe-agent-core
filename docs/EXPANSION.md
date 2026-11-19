@@ -11,3 +11,5 @@
 这些能力通过公开接口测试；多文件/固定wheel还通过作者编写的真实Docker控制。作者控制、元数据准备和模型评测不是同类证据。20题真实运行需要逐题环境控制与无提示有界上下文/具体runner接线；缺条件保留NOT_STARTED，不调用模型凑数量。
 
 已提供全repo有界工具和durable runtime seam，以及固定JSON-case RepositoryObserverRunner/具体RepositoryAdmission/repository_graph_factory。host只加载项目静态observer，外来oracle只入Docker。完整作者Mock→两文件→Docker→SQLite控制通过；其证据仍是cooperative，并非防伪oracle或官方12repo harness适配。BenchmarkBatchAllowance只负责20×0.2一次性串行财务槽，不赋予执行安全或评分准入。
+
+`prepare_native_task`提供固定b8d53321、已审17组repo/version的原生命令和私有测试数据配置；`parse_native_log`按精确roster解析7类日志，缺失、冲突、别名或超限不能变为成功，skip/error也不是通过。二者只处理数据，不授权执行或等同官方完整评分器。首个官方Requests镜像已在受限容器中完成离线target安装和候选导入来源验证，但gold仍有2项必要P2P失败及缺失httpbin fixture，未准入付费任务。其余环境/native runner仍待实现与实证，不能声明20题已运行。
