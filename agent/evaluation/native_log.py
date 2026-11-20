@@ -9,6 +9,7 @@ import re
 PARSERS = frozenset(('pytest', 'pytest-options', 'pytest-v2', 'matplotlib',
                      'seaborn', 'django', 'sympy'))
 STATUSES = 'PASSED|FAILED|ERROR|SKIPPED|XFAIL|XPASS'
+_STATUS_SET = frozenset(STATUSES.split('|'))
 ANSI = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
 MAX_LOG_BYTES = 4 * 1024 * 1024
 
@@ -120,16 +121,23 @@ def parse_native_log(parser_id: str, log: str, required_ids: tuple[str, ...]) ->
                     elif depth == 0 and identity[index:index+3] == ' - ':
                         identity = identity[:index]; break
         elif parser_id in ('pytest-v2', 'seaborn'):
-            match = re.fullmatch(r'(.+?)\s+(' + STATUSES + r')(?:\s+\[\s*\d+%\])?', line)
-            if not match: continue
-            identity, status = match.groups()
+            body = line
+            opening = body.rfind('[')
+            if body.endswith('%]') and opening > 0 and body[opening-1].isspace():
+                percentage = body[opening+1:-2].strip()
+                if percentage.isascii() and percentage.isdecimal() and len(percentage) <= 3:
+                    body = body[:opening].rstrip()
+            parts = body.rsplit(None, 1)
+            if len(parts) != 2 or parts[1] not in _STATUS_SET: continue
+            identity, status = parts
         else:
             continue
         origin = identity
         if parser_id == 'pytest-options':
-            option = re.fullmatch(r'(.*?)\[(/[^\]]*)\]', identity)
-            if option and not option[2].startswith('//') and '*' not in option[2]:
-                identity = option[1] + '[/' + option[2].rsplit('/', 1)[-1] + ']'
+            opening = identity.find('[')
+            option = identity[opening+1:-1] if opening >= 0 and identity.endswith(']') else ''
+            if option.startswith('/') and not option.startswith('//') and '*' not in option and ']' not in option:
+                identity = identity[:opening] + '[/' + option.rsplit('/', 1)[-1] + ']'
         elif parser_id == 'matplotlib':
             identity = identity.replace('MouseButton.LEFT', '1').replace('MouseButton.RIGHT', '3')
         observe(identity, status, origin)

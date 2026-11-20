@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "01d1675d5809023284a5bac5df3999b5208b4285",
+  "source_commit": "1282fe7d07fa601ebf1a34542a3e8fbb450391fb",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -228,8 +228,8 @@
       "bytes": 7575
     },
     "agent/evaluation/native_log.py": {
-      "sha256": "8b739b5e36f2601cf2b4560b88635f8fc63a2c936aa72a7c65906f2ec911ebe7",
-      "bytes": 6536
+      "sha256": "391aefdb9150c31a2d16ec9934c33986f04b0e433991b1dded64f0b86d411724",
+      "bytes": 7011
     },
     "agent/evaluation/native_task_spec.py": {
       "sha256": "d84076b092895a0e7a419e0de9cd071c04c03120ecb64f2b81254ae6f925c16f",
@@ -720,8 +720,8 @@
       "bytes": 5790
     },
     "tests/evaluation/test_native_log.py": {
-      "sha256": "35b1c35ed567a71eeaa945089418c9ed6f45289af40a81be5a70875d85920da7",
-      "bytes": 4787
+      "sha256": "a9ae18e65ec95aa831be9a2eea97e4cc57c56399e1a81fd7ffd7fcebf399ee64",
+      "bytes": 5379
     },
     "tests/evaluation/test_native_task_spec.py": {
       "sha256": "3f89894a01312a87f5cd97a4e433a0cb328545b5e3cad2543d2e0d54e2bf4751",

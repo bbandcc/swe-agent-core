@@ -1,5 +1,8 @@
 """Strict native log data parsing never grants execution admission."""
 import unittest
+import subprocess
+import sys
+from pathlib import Path
 
 from agent.evaluation.native_log import parse_native_log
 
@@ -60,6 +63,15 @@ class NativeLogTests(unittest.TestCase):
     def test_django_accepts_native_double_space_ok(self):
         result = parse_native_log('django', 'case (Class) ...  OK\n', ('case (Class)',))
         self.assertTrue(result.strict_passed)
+
+    def test_long_malformed_native_line_finishes_within_process_deadline(self):
+        program = ("from agent.evaluation.native_log import parse_native_log; "
+                   "r=parse_native_log('pytest-v2','case'+' '*65000+'unknown',('case',)); "
+                   "print(r.complete)")
+        result = subprocess.run([sys.executable, '-c', program],
+            cwd=Path(__file__).resolve().parents[2], capture_output=True,
+            check=True, timeout=5, shell=False)
+        self.assertEqual(result.stdout.strip(), b'False')
 
     def test_sympy_ambiguous_bare_names_and_failure_sections_are_rejected(self):
         result = parse_native_log('sympy', 'a/tests/test_a.py[1]\ntest_a ok\nb/tests/test_b.py[1]\ntest_a ok\n', ('test_a',))
