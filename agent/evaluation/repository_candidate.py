@@ -97,7 +97,10 @@ def _root(path: Path, *, existing: bool = True) -> Path:
 
 
 def _identity(info):
-    return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink,
+    # Windows path stat synthesizes execute bits from .bat/.cmd/.exe/.com;
+    # fd stat cannot. These are not ACLs or executable-mode snapshot evidence.
+    mode = info.st_mode & ~0o111 if os.name == "nt" and stat.S_ISREG(info.st_mode) else info.st_mode
+    return (info.st_dev, info.st_ino, mode, info.st_nlink,
             info.st_size, info.st_mtime_ns)
 
 

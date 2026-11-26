@@ -24,6 +24,18 @@ class RepositoryCandidateTests(unittest.TestCase):
         return freeze_candidate(self.baseline, self.generation, policy or CandidatePolicy(),
                                 destination or self.root / "snapshot")
 
+    def test_complete_tree_keeps_windows_executable_suffix_bytes(self):
+        for root in (self.baseline,self.generation):
+            (root/'docs').mkdir()
+            for suffix in ('bat','cmd','exe','com'):
+                (root/'docs'/('source.'+suffix)).write_bytes(b'authored byte-only fixture\n')
+        (self.generation/'src/a.py').write_bytes(b'a=2\r\n')
+        result=self.freeze()
+        self.assertTrue(result.ok,result)
+        for suffix in ('bat','cmd','exe','com'):
+            self.assertEqual((result.snapshot.root/'docs'/('source.'+suffix)).read_bytes(),
+                             b'authored byte-only fixture\n')
+
     def test_two_edits_are_in_the_same_complete_frozen_tree(self):
         from agent.evaluation.repository_candidate import CandidatePolicy, freeze_candidate
 
