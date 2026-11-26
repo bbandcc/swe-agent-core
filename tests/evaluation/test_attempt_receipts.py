@@ -22,7 +22,8 @@ class AttemptReceiptTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        # Match the concrete runners' canonical roots, including Windows 8.3 TEMP.
+        self.root = Path(temporary.name).resolve(strict=True)
         self.generation = self.root/'G'; self.generation.mkdir()
         self.runtime = self.root/'runtime'; self.runtime.mkdir()
         self.source = b'fixed final source manifest'
@@ -63,6 +64,12 @@ class AttemptReceiptTests(unittest.TestCase):
     def test_exact_independent_receipts_bind_both_original_attempts(self):
         self.assertEqual([v['attempt_id'] for v in self.bind()],
             [a.attempt_id for a in self.result.state['verification_attempts']])
+
+    def test_lexical_record_root_alias_uses_the_configured_canonical_identity(self):
+        bound = bind_attempt_receipts(self.result,runtime_root=self.runtime/'..'/'runtime',
+            configured_runtime_root=self.runtime,generation_root=self.generation,
+            receipts=self.receipts,source_reader=lambda:self.source,receipt_prefix='native_receipt=')
+        self.assertEqual(len(bound),2)
 
     def test_duplicate_post_receipt_cannot_replace_missing_baseline(self):
         with self.assertRaises(ValueError):

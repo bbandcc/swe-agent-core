@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "23152983a5bd3d758e0877cbf2d183855e2d05c6",
+  "source_commit": "7e1a2284814c2f826e6329797252450e95dc64c0",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -230,6 +230,10 @@
     "agent/evaluation/native_log.py": {
       "sha256": "4a607323aaed1a795313139c837b87da1bf68f760684979fdb64e9c1ab392586",
       "bytes": 7076
+    },
+    "agent/evaluation/native_receipts.py": {
+      "sha256": "7001e2a24ef71d474defe3e7928d8e53f3175ddc34afad210acd4a8c47b8940f",
+      "bytes": 7109
     },
     "agent/evaluation/native_result.py": {
       "sha256": "ea749153201aa934ad1a2ced8dc181ec9cd5576431bc6c4cd4e23c1994ceba77",
@@ -696,8 +700,8 @@
       "bytes": 3824
     },
     "tests/evaluation/test_attempt_receipts.py": {
-      "sha256": "9ba4abf0ddaf7fc8402fac4a55417237e7e34de59458938344440cf8f2546acc",
-      "bytes": 4937
+      "sha256": "3836eef1537bf2e7a117205051c1ea5623d72abd7f53376ed0a6ef44a39545df",
+      "bytes": 5442
     },
     "tests/evaluation/test_benchmark_budget.py": {
       "sha256": "79f243e6588f7113e6d455f3a9a6948bc6df861aed31688e01db8d88ac0804df",
@@ -730,6 +734,10 @@
     "tests/evaluation/test_native_log.py": {
       "sha256": "d7ec01e0b235d034e847a308efc43d29b7f0be72cdd97e8a463111d1e017c36f",
       "bytes": 5968
+    },
+    "tests/evaluation/test_native_receipts.py": {
+      "sha256": "a7c006b1dc5cf82c898d27c7d2078ad40ceb398799a39ba4c64a4b96456886ac",
+      "bytes": 9465
     },
     "tests/evaluation/test_native_result.py": {
       "sha256": "8d4a2e6329f110ca953be741a4bdb75b1930e94e29ec2b7c4cf9d39c496c72d5",
@@ -936,8 +944,8 @@
       "bytes": 11154
     },
     "tests/test_s5d2_ci_contract.py": {
-      "sha256": "ae6da6acd0b34a8c07646815dfc79a6f4f7d183f734170a8218273b54eb50426",
-      "bytes": 12380
+      "sha256": "3bb58fb5b1f9fcb71363c23cbe125dc3285626b2d533cd1b63f4227fdd460036",
+      "bytes": 12425
     },
     "tests/test_sdist_review_evidence.py": {
       "sha256": "d591c719985215d5f3f8bbfe2020eaf9f8c445a4d6c27e3fe4a498b342295a15",
