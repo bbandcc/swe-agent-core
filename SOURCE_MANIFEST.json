@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "ae69e5a9ff3a83b1b2f5b031468aa27932a656d1",
+  "source_commit": "23152983a5bd3d758e0877cbf2d183855e2d05c6",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -196,8 +196,8 @@
       "bytes": 36856
     },
     "agent/evaluation/attempt_receipts.py": {
-      "sha256": "5a880cf320815e450683bc9cfa8e3283877d9e114442901b1121c3f68b5ac3a3",
-      "bytes": 3892
+      "sha256": "0a5b51233d8dfabd250fdf93d0f83e3f3d11356f4a1686f5675f9c6d74e5c523",
+      "bytes": 4647
     },
     "agent/evaluation/benchmark_budget.py": {
       "sha256": "3cdb1d6f785a6ef75600e82648eae08a4f119fca8754315fdf0bff2fae6ebd0a",
@@ -695,6 +695,10 @@
       "sha256": "b53dab2dac5b6d296438130c605ed9c8acab09c22490e5fe1d7f9e0e840136b2",
       "bytes": 3824
     },
+    "tests/evaluation/test_attempt_receipts.py": {
+      "sha256": "9ba4abf0ddaf7fc8402fac4a55417237e7e34de59458938344440cf8f2546acc",
+      "bytes": 4937
+    },
     "tests/evaluation/test_benchmark_budget.py": {
       "sha256": "79f243e6588f7113e6d455f3a9a6948bc6df861aed31688e01db8d88ac0804df",
       "bytes": 6220
@@ -932,8 +936,8 @@
       "bytes": 11154
     },
     "tests/test_s5d2_ci_contract.py": {
-      "sha256": "86426f9688e6d8812412f3f708f6b38f4e4c663849ccfe3ca4d9b0de4b57e6f6",
-      "bytes": 12334
+      "sha256": "ae6da6acd0b34a8c07646815dfc79a6f4f7d183f734170a8218273b54eb50426",
+      "bytes": 12380
     },
     "tests/test_sdist_review_evidence.py": {
       "sha256": "d591c719985215d5f3f8bbfe2020eaf9f8c445a4d6c27e3fe4a498b342295a15",

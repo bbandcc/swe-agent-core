@@ -37,6 +37,7 @@ SUPPORTED_TARGETS = (
     'tests.evaluation.test_native_task_spec',
     'tests.evaluation.test_native_log',
     'tests.evaluation.test_native_result',
+    'tests.evaluation.test_attempt_receipts',
     'tests.evaluation.test_pilot_tasks.PilotTaskTests',
     'tests.evaluation.test_pilot_workflow.PilotAssemblyTests',
     'tests.evaluation.test_task_execution.TaskExecutionTests.test_hidden_path_canary_command_writes_only_when_paths_are_absent',

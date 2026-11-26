@@ -37,11 +37,19 @@ def bind_attempt_receipts(result, *, runtime_root, configured_runtime_root,
             or record.runtime_status != result.status.value):
         raise ValueError("RunRecord does not belong to the same run/task/thread.")
     attempts = state.get("verification_attempts", ())
+    if (not attempts or not receipts
+            or len({a.attempt_id for a in attempts}) != len(attempts)):
+        raise ValueError("Original verification attempts must be non-empty and unique.")
     if any(a.run_id != identity.run_id or a.task_id != identity.task_id for a in attempts):
         raise ValueError("Verification attempts belong to another identity.")
-    bound = []
+    bound, receipt_ids, attempt_ids = [], set(), set()
     for receipt in receipts:
-        token = receipt_prefix + receipt["receipt_id"]
+        receipt_id = receipt.get("receipt_id")
+        if (not isinstance(receipt_id, str) or not receipt_id or "\n" in receipt_id
+                or "\r" in receipt_id or receipt_id in receipt_ids):
+            raise ValueError("Receipt identities must be non-empty and unique.")
+        receipt_ids.add(receipt_id)
+        token = receipt_prefix + receipt_id
         matches = [a for a in attempts if a.result is not None and a.run_id == result.run_id
                    and token in a.result.message.splitlines()]
         digest = (hashlib.sha256(json.dumps(asdict(matches[0].result), sort_keys=True,
@@ -49,11 +57,15 @@ def bind_attempt_receipts(result, *, runtime_root, configured_runtime_root,
         if len(matches) != 1 or digest != receipt["result_digest"]:
             raise ValueError("Receipt does not bind exactly one original attempt.")
         attempt = matches[0]
+        if attempt.attempt_id in attempt_ids:
+            raise ValueError("An original attempt cannot bind more than one receipt.")
+        attempt_ids.add(attempt.attempt_id)
         bound.append({"receipt": receipt, "attempt_id": attempt.attempt_id,
                       "phase": attempt.phase, "run_id": result.run_id,
                       "task_id": attempt.task_id, "repair_attempt": attempt.repair_attempt,
                       "record_ref": result.record_ref})
-    if len(bound) != len(attempts) or result.audit_incomplete or not result.record_ref:
+    if (attempt_ids != {a.attempt_id for a in attempts}
+            or result.audit_incomplete or not result.record_ref):
         raise ValueError("Research audit is incomplete.")
     if state.get("acceptance") is not None and state["acceptance"].accepted:
         posts = [item for item in bound if item["phase"] == "post"]
