@@ -8,6 +8,15 @@ from agent.evaluation.native_log import parse_native_log
 
 
 class NativeLogTests(unittest.TestCase):
+    def test_old_pytest_verbose_options_keep_normalization_and_raw_origin(self):
+        identity = 'tests/a.py::test_case[/a.txt]'
+        origin = 'tests/a.py::test_case[/temporary/root/a.txt]'
+        result = parse_native_log('pytest-options-v2', origin+' PASSED [ 10%]\n', (identity,))
+        self.assertTrue(result.strict_passed)
+        self.assertEqual(result.case_origins, ((identity, origin),))
+        collision = origin+' PASSED\ntests/a.py::test_case[/another/a.txt] PASSED\n'
+        self.assertFalse(parse_native_log('pytest-options-v2', collision, (identity,)).complete)
+
     def test_reads_each_reviewed_family_with_exact_case_identity(self):
         fixtures = (
             ('pytest', 'PASSED tests/test_a.py::test_a\n', 'tests/test_a.py::test_a'),

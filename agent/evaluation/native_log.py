@@ -6,7 +6,7 @@ This module neither executes code nor establishes output authenticity.
 from dataclasses import dataclass
 import re
 
-PARSERS = frozenset(('pytest', 'pytest-options', 'pytest-v2', 'matplotlib',
+PARSERS = frozenset(('pytest', 'pytest-options', 'pytest-options-v2', 'pytest-v2', 'matplotlib',
                      'seaborn', 'django', 'sympy'))
 STATUSES = 'PASSED|FAILED|ERROR|SKIPPED|XFAIL|XPASS'
 _STATUS_SET = frozenset(STATUSES.split('|'))
@@ -120,7 +120,7 @@ def parse_native_log(parser_id: str, log: str, required_ids: tuple[str, ...]) ->
                     elif char == ']': depth = max(0, depth - 1)
                     elif depth == 0 and identity[index:index+3] == ' - ':
                         identity = identity[:index]; break
-        elif parser_id in ('pytest-v2', 'seaborn'):
+        elif parser_id in ('pytest-v2', 'pytest-options-v2', 'seaborn'):
             body = line
             opening = body.rfind('[')
             if body.endswith('%]') and opening > 0 and body[opening-1].isspace():
@@ -133,7 +133,7 @@ def parse_native_log(parser_id: str, log: str, required_ids: tuple[str, ...]) ->
         else:
             continue
         origin = identity
-        if parser_id == 'pytest-options':
+        if parser_id in ('pytest-options', 'pytest-options-v2'):
             opening = identity.find('[')
             option = identity[opening+1:-1] if opening >= 0 and identity.endswith(']') else ''
             if option.startswith('/') and not option.startswith('//') and '*' not in option and ']' not in option:
