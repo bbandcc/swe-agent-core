@@ -7,6 +7,9 @@ from agent.runtime.boundary import DurableBudgetState
 
 
 class SoftwareArchitectState(DurableBudgetState):
+    hypothesis_attempts: int = Field(0, ge=0, strict=True)
+    research_turns: int = Field(0, ge=0, strict=True)
+    architect_research_policy: Optional[str] = Field(None, strict=True)
     research_next_step: Optional[str] = Field(None, description="The next research step to be conducted")
     implementation_plan: Optional[ImplementationPlan] = Field(None, description="The implementation plan to be executed")
     implementation_research_scratchpad: Annotated[list[AnyMessage], add_messages] = Field([], description="The scratchpad for implementation research")

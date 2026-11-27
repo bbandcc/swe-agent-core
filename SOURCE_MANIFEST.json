@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "df52d7e75eb555e44a851c1574d1146bb450d474",
+  "source_commit": "7dabaf7282e6bf45290cf1dbf44953e248d5b406",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -52,8 +52,8 @@
       "bytes": 62
     },
     "agent/architect/graph.py": {
-      "sha256": "ff8cf52d75d6534ce226591b5d28a34b5a02d2938b30948a7b51439b8f77fec9",
-      "bytes": 16445
+      "sha256": "38886d93b0214c99cd7e8de5064df73ead3085d7bbc68ec6a63ac53b3a8085dc",
+      "bytes": 19091
     },
     "agent/architect/models.py": {
       "sha256": "c3446b848cac998118954c42b259e943241c3aabb2cacc2321affce1178568b8",
@@ -75,13 +75,17 @@
       "sha256": "0a21c5c55861492beae617aaf905c8f618717c6bbed82430cda317f11d608395",
       "bytes": 1583
     },
+    "agent/architect/research_limits.py": {
+      "sha256": "da8c050c226fddc544715cffbf2297b152fc1a3c70cad40f38819373b2ed8bf6",
+      "bytes": 1740
+    },
     "agent/architect/runtime.py": {
       "sha256": "8a0eac4e0d29bce4e0491d8275b0be5df98deaceef1ceec6ecb146f65d27fa94",
       "bytes": 7360
     },
     "agent/architect/state.py": {
-      "sha256": "d17b2f5f58c1350f490d8713c4631c71d50600c23e6a549f8e3fb3578872ae42",
-      "bytes": 811
+      "sha256": "54f40afc0e3795187cd890f6ffe2af5d11578e003618c7077d902abb836a7728",
+      "bytes": 996
     },
     "agent/artifacts.py": {
       "sha256": "2a53ae1a7bbd40c2b4e276f3eab54cb5f5b527fb715656e11179afd5cc362656",
@@ -232,8 +236,8 @@
       "bytes": 7575
     },
     "agent/evaluation/native_graph.py": {
-      "sha256": "25963dfa85198f5c40435220154d3dfb09186c4be5eafede7ff0c0699b26fbb2",
-      "bytes": 2494
+      "sha256": "1ea978408232f74afbdf1a27a29779168bf84f94e2dbcf61a410c4ed8c92e649",
+      "bytes": 2749
     },
     "agent/evaluation/native_log.py": {
       "sha256": "00c18da06f51b08eba7eb25e6d193d7d30646c26b10647aa4f9939ebe9ac6f92",
@@ -316,8 +320,8 @@
       "bytes": 21757
     },
     "agent/evaluation/repository_candidate.py": {
-      "sha256": "7bc8e5743c92e23e7bca0895d341a72f9f8ab0f5b6f90058d4080f4324dfb1c1",
-      "bytes": 11023
+      "sha256": "09a52ab335cf10ba2bf41ac44834f4175abfbc7c7e9323143789e9142ca9379f",
+      "bytes": 11511
     },
     "agent/evaluation/repository_container.py": {
       "sha256": "9e07b8b4b036c70fd50ee7c1af89a83d50db04e7f499b632626dd9ae8b924bf3",
@@ -340,8 +344,8 @@
       "bytes": 9615
     },
     "agent/evaluation/repository_runtime.py": {
-      "sha256": "cd09702855d19fe4f0b7a6bd570372f79b159725c6b6e558f7b4ca5b9b789029",
-      "bytes": 8831
+      "sha256": "fae08ffe9dcf7d2bc118196476186b46d04c6eaf131b3015f6bb7429a853bc96",
+      "bytes": 8958
     },
     "agent/evaluation/swebench_context.py": {
       "sha256": "a06ef503dfb7c18490fc1b3632ab3f9ffcf291a995569c5f0ecd399f6044ca51",
@@ -707,6 +711,10 @@
       "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
       "bytes": 1
     },
+    "tests/architect/test_research_limits.py": {
+      "sha256": "0994ee30f66db6f7e2fec7ec99c189550b7a5ccc75c0cff4e2c06005b17c7d60",
+      "bytes": 10335
+    },
     "tests/architect/test_workflow.py": {
       "sha256": "22d45141bf54a0156d8284d0d2a10a7d87b5de8432e2d5ebcf5f7f6ebdd9e7a0",
       "bytes": 2153
@@ -856,8 +864,8 @@
       "bytes": 21749
     },
     "tests/evaluation/test_repository_candidate.py": {
-      "sha256": "9e888bd4c59ed1a2bfbf40336cf67b36fac3c1e33679aafe90efd09fff044574",
-      "bytes": 9352
+      "sha256": "12aea63a080aa299d2f06df02e9c52e9627a6cb5e4caf4c999ab1ec362743306",
+      "bytes": 12709
     },
     "tests/evaluation/test_repository_context.py": {
       "sha256": "ab4065090af9bf15fbcd614931f7ed0e4208d79b016f7a804e2d30b19783d6b7",
@@ -868,8 +876,8 @@
       "bytes": 7569
     },
     "tests/evaluation/test_repository_runtime.py": {
-      "sha256": "6304f45885f8f6ce28dedfa813177a0ad98af2ef90748d8f692b2daa8a48732a",
-      "bytes": 11993
+      "sha256": "b65737e4e66bb8c89402c36c8df9ec2ee729186c7e386f41a91ebbb3b98fc6e2",
+      "bytes": 14635
     },
     "tests/evaluation/test_swebench_cooperative.py": {
       "sha256": "bb6a8304e8c1fae278727437a7a324f3b8d792155a61068300a9cf82450718ac",
@@ -1020,8 +1028,8 @@
       "bytes": 11154
     },
     "tests/test_s5d2_ci_contract.py": {
-      "sha256": "2b9d1e8abc6233b3f3f88c545380b462853ab36c9c8b1768ad2e12d655a16434",
-      "bytes": 12731
+      "sha256": "d85ee88b539eabfb9914b9569dad5b72188d5ca7a0501b469c00ad8c0957deb4",
+      "bytes": 12775
     },
     "tests/test_sdist_review_evidence.py": {
       "sha256": "d591c719985215d5f3f8bbfe2020eaf9f8c445a4d6c27e3fe4a498b342295a15",

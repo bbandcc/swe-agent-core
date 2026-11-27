@@ -7,6 +7,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 SUPPORTED_TARGETS = (
     'tests.architect.test_workflow',
+    'tests.architect.test_research_limits',
     'tests.common.test_tool_message_renderer',
     'tests.developer.test_edit_executor',
     'tests.developer.test_workflow',

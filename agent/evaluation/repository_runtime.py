@@ -46,6 +46,7 @@ def repository_plan_allowed(plan, workspace_root: Path, policy: CandidatePolicy,
             or not 1 <= len(plan.tasks) <= 32):
         return False
     access = access_policy or WorkspaceAccessPolicy(hidden_paths=policy.protected_paths)
+    immutable = WorkspaceAccessPolicy(hidden_paths=policy.immutable_paths)
     resolver = WorkspacePathResolver(workspace_root)
     seen = set()
     try:
@@ -54,6 +55,7 @@ def repository_plan_allowed(plan, workspace_root: Path, policy: CandidatePolicy,
             if (path is None or any(ord(c) < 32 or ord(c) == 127 for c in path)
                     or path in seen or not access.check_write(path).allowed
                     or WorkspaceAccessPolicy(hidden_paths=policy.protected_paths).is_protected(path)
+                    or immutable.is_protected(path)
                     or not any(p == "." or path == p or path.startswith(p + "/") for p in policy.editable_prefixes)
                     or not 1 <= len(task.atomic_tasks) <= 32
                     or not all(step.atomic_task.strip() for step in task.atomic_tasks)):

@@ -29,9 +29,11 @@ class CandidatePolicy:
     max_entries: int = 4096
     max_total_bytes: int = 64 * 1024 * 1024
     max_changed_bytes: int = 256 * 1024
+    # Visible source bytes that must remain identical; protected_paths stay hidden.
+    immutable_paths: tuple[str, ...] = ()
 
     def __post_init__(self):
-        for field in ("editable_prefixes", "protected_paths"):
+        for field in ("editable_prefixes", "protected_paths", "immutable_paths"):
             values = getattr(self, field)
             if type(values) is not tuple or (field == "editable_prefixes" and not values):
                 raise ValueError("Path policy requires explicit tuples.")
@@ -178,11 +180,16 @@ def freeze_candidate(baseline: Path, generation: Path, policy: CandidatePolicy,
             raise _Rejected("destination_exists")
         before, before_dirs, before_ids = _capture(base, policy)
         after, directories, after_ids = _capture(candidate, policy)
+        immutable = WorkspaceAccessPolicy(hidden_paths=policy.immutable_paths)
+        if any(immutable.is_protected(name) for name in set(before_dirs) ^ set(directories)):
+            raise _Rejected("immutable_path")
         if set(before) - set(after) or set(before_dirs) - set(directories):
             raise _Rejected("delete_unsupported")
         changes, patches, changed_bytes = [], [], 0
         for key, (name, data) in sorted(after.items()):
             previous = before.get(key)
+            if immutable.is_protected(name) and previous != (name, data):
+                raise _Rejected("immutable_path")
             if previous is not None and previous[1] == data:
                 continue
             if not any(prefix == "." or key == prefix or key.startswith(prefix + "/") for prefix in policy.editable_prefixes):

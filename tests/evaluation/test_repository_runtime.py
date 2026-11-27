@@ -171,4 +171,38 @@ class RepositoryRuntimeTests(unittest.TestCase):
             self.assertEqual(Path(directory, "a.py").read_bytes(), source.encode())
 
 
+    def test_immutable_source_is_visible_but_existing_and_new_plan_targets_are_refused(self):
+        from agent.common.entities import AtomicTask,ImplementationPlan,ImplementationTask
+        from agent.evaluation.repository_candidate import CandidatePolicy
+        from agent.evaluation.repository_runtime import repository_plan_allowed
+        def plan(path):
+            return ImplementationPlan(tasks=[ImplementationTask(file_path=path,logical_task='edit',
+                atomic_tasks=[AtomicTask(atomic_task='change')])])
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);(root/'astropy_helpers').mkdir()
+            (root/'astropy_helpers/helper.py').write_bytes(b'fixed helper\n')
+            (root/'.gitmodules').write_bytes(b'fixed config\n')
+            policy=CandidatePolicy(immutable_paths=('astropy_helpers','.gitmodules'))
+            runtime,_,_=self.sdk_runtime(directory,policy=policy)
+            self.assertTrue(runtime.access_policy.check_read('astropy_helpers/helper.py').allowed)
+            self.assertIn('astropy_helpers',runtime.load_structure())
+            for path in ('astropy_helpers/helper.py','astropy_helpers/new.py','.gitmodules'):
+                self.assertFalse(repository_plan_allowed(plan(path),root,policy,runtime.access_policy),path)
+            self.assertTrue(repository_plan_allowed(plan('new_parent.py'),root,policy,runtime.access_policy))
+
+    def test_actual_extract_rejects_immutable_target_before_s1_and_retains_usage(self):
+        from agent.common.entities import ImplementationPlan
+        from agent.evaluation.repository_candidate import CandidatePolicy
+        from langchain_core.output_parsers import JsonOutputParser
+        reply=json.dumps({'tasks':[{'file_path':'helpers/helper.py','logical_task':'edit',
+            'atomic_tasks':[{'atomic_task':'change'}]}]})
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'helpers/helper.py';path.parent.mkdir();path.write_bytes(b'fixed\n')
+            runtime,_,_=self.sdk_runtime(directory,reply=reply,policy=CandidatePolicy(immutable_paths=('helpers',)))
+            result=runtime.architect.extract_implementation_plan({'research_findings':[HumanMessage(content='Findings')],
+                'codebase_structure':'repository','output_format':JsonOutputParser(pydantic_object=ImplementationPlan).get_format_instructions()})
+            self.assertEqual(result.error_code.value,'model_output_invalid')
+            self.assertIsNone(result.value);self.assertEqual(result.usage.input_tokens,10)
+            self.assertEqual(path.read_bytes(),b'fixed\n')
+
 if __name__ == "__main__": unittest.main()

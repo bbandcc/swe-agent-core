@@ -1,6 +1,7 @@
 """Architect research graph with explicit invalid-step routing."""
 
 from collections.abc import Sequence
+from dataclasses import replace
 from functools import wraps
 from typing import Any, NotRequired, TypedDict
 
@@ -14,6 +15,9 @@ from langgraph.prebuilt import ToolNode
 from agent.architect.models import ResearchEvaluation, ResearchStep
 from agent.architect.runtime import ArchitectRuntime, default_architect_runtime
 from agent.architect.state import SoftwareArchitectState
+from agent.architect.research_limits import (
+    reached_research_limit, research_policy_update, research_tools_failed, validate_round_limit,
+)
 from agent.common.entities import ImplementationPlan
 from agent.common.tool_message_renderer import render_tool_messages
 from agent.tools.codemap import codemap_tools
@@ -69,7 +73,9 @@ def create_architect_workflow(
     secret_filter: KnownSecretFilter | None = None,
     event_recorder: EventRecorder | None = None,
     access_policy: WorkspaceAccessPolicy | None = None,
+    research_round_limit: int | None = None,
 ):
+    validate_round_limit(research_round_limit)
     runtime = runtime or default_architect_runtime()
     tools = list(
         codemap_tools + search_tools if research_tools is None else research_tools
@@ -78,6 +84,7 @@ def create_architect_workflow(
     def prepare_model_values(
         state: SoftwareArchitectState, values: dict[str, Any]
     ) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+        research_policy_update(state, research_round_limit)
         if budget_boundary is None:
             return values, {}
         timeout, deadline_update = budget_boundary.model_dispatch_timeout(state)
@@ -101,13 +108,15 @@ def create_architect_workflow(
             return deadline_update
         assert values is not None
         response = runtime.plan_next_step(values)
-        budget_update: dict[str, Any] = {}
+        budget_update: dict[str, Any] = research_policy_update(state, research_round_limit)
         if budget_boundary is not None:
-            response, budget_update = budget_boundary.capture_model(state, response)
+            response, captured = budget_boundary.capture_model(state, response)
+            budget_update.update(captured)
             if response is None:
                 return budget_update
         return {
             **budget_update,
+            "hypothesis_attempts": state.hypothesis_attempts + 1,
             "research_next_step": response.hypothesis,
             "implementation_research_scratchpad": [
                 AIMessage(
@@ -132,9 +141,10 @@ def create_architect_workflow(
             return deadline_update
         assert values is not None
         response = runtime.check_research_step(values)
-        budget_update: dict[str, Any] = {}
+        budget_update: dict[str, Any] = research_policy_update(state, research_round_limit)
         if budget_boundary is not None:
-            response, budget_update = budget_boundary.capture_model(state, response)
+            response, captured = budget_boundary.capture_model(state, response)
+            budget_update.update(captured)
             if response is None:
                 return budget_update
         message = (
@@ -162,13 +172,15 @@ def create_architect_workflow(
             return deadline_update
         assert values is not None
         response = runtime.conduct_research(values)
-        budget_update: dict[str, Any] = {}
+        budget_update: dict[str, Any] = research_policy_update(state, research_round_limit)
         if budget_boundary is not None:
-            response, budget_update = budget_boundary.capture_model(state, response)
+            response, captured = budget_boundary.capture_model(state, response)
+            budget_update.update(captured)
             if response is None:
                 return budget_update
         return {
             **budget_update,
+            "research_turns": state.research_turns + 1,
             "implementation_research_scratchpad": [response],
         }
 
@@ -189,9 +201,10 @@ def create_architect_workflow(
             return deadline_update
         assert values is not None
         response = runtime.extract_implementation_plan(values)
-        budget_update: dict[str, Any] = {}
+        budget_update: dict[str, Any] = research_policy_update(state, research_round_limit)
         if budget_boundary is not None:
-            response, budget_update = budget_boundary.capture_model(state, response)
+            response, captured = budget_boundary.capture_model(state, response)
+            budget_update.update(captured)
             if response is None:
                 return budget_update
         return {**budget_update, "implementation_plan": response}
@@ -214,9 +227,9 @@ def create_architect_workflow(
     def reserve_model(name: str):
         def reserve(state: SoftwareArchitectState) -> dict[str, Any]:
             assert budget_boundary is not None
-            return budget_boundary.reserve_model(
+            return {**research_policy_update(state, research_round_limit), **budget_boundary.reserve_model(
                 state, name, request_values(state, name)
-            )
+            )}
         return reserve
 
     def settle_call(state: SoftwareArchitectState) -> dict[str, Any]:
@@ -230,7 +243,13 @@ def create_architect_workflow(
 
     def record_tool_results(state: SoftwareArchitectState) -> dict[str, Any]:
         assert budget_boundary is not None
-        return budget_boundary.record_tool_results(state)
+        update = budget_boundary.record_tool_results(state)
+        if research_round_limit is not None and research_tools_failed(state.implementation_research_scratchpad):
+            update['durable_call_result'] = replace(update['durable_call_result'], failed=True)
+            update.setdefault('runtime_error_code', BudgetErrorCode.MODEL_REQUEST_REJECTED)
+            update.setdefault('runtime_message',
+                'Bounded research stopped after a failed tool result; extraction was not dispatched.')
+        return update
 
     def after_settle(state: SoftwareArchitectState, route: str) -> str:
         assert budget_boundary is not None
@@ -243,11 +262,17 @@ def create_architect_workflow(
     def dispatch_tools(
         state: SoftwareArchitectState, config: RunnableConfig
     ) -> dict[str, Any]:
-        assert budget_boundary is not None
-        deadline_update = budget_boundary.guard_dispatch(state)
-        if deadline_update:
-            return deadline_update
-        return tool_node.invoke(state, config)
+        research_policy_update(state, research_round_limit)
+        if budget_boundary is not None:
+            deadline_update = budget_boundary.guard_dispatch(state)
+            if deadline_update:
+                return deadline_update
+        update = tool_node.invoke(state, config)
+        if budget_boundary is None and research_round_limit is not None and research_tools_failed(
+                [*state.implementation_research_scratchpad, *update['implementation_research_scratchpad']]):
+            update.update(runtime_error_code=BudgetErrorCode.MODEL_REQUEST_REJECTED,
+                runtime_message='Bounded research stopped after a failed tool result.')
+        return update
 
     def route_after_tool_dispatch(state: SoftwareArchitectState) -> str:
         if state.runtime_error_code is not None:
@@ -263,6 +288,19 @@ def create_architect_workflow(
         ):
             return "end"
         return "settle"
+
+    def route_after_check(state: SoftwareArchitectState) -> str:
+        route = should_conduct_research(state)
+        if route == 'plan_is_not_valid' and reached_research_limit(state, research_round_limit, hypothesis=True):
+            return 'implement_plan'
+        return route
+
+    def route_after_tools(state: SoftwareArchitectState) -> str:
+        if state.runtime_error_code is not None:
+            return 'end'
+        if budget_boundary is not None and after_settle(state, 'continue') == 'end':
+            return 'end'
+        return 'implement_plan' if reached_research_limit(state, research_round_limit) else 'continue'
 
     def persist_node(
         node,
@@ -308,7 +346,7 @@ def create_architect_workflow(
     workflow.add_node(
         "tools",
         persist_node(
-            dispatch_tools if budget_boundary is not None else tool_node,
+            dispatch_tools if budget_boundary is not None or research_round_limit is not None else tool_node,
             event_type="tool",
             node_name="research_tools",
         ),
@@ -361,11 +399,12 @@ def create_architect_workflow(
             lambda state: (
                 "end"
                 if state.runtime_error_code is not None
-                else should_conduct_research(state)
+                else route_after_check(state)
             ),
             {
                 "plan_is_valid": "reserve_conduct_research",
                 "plan_is_not_valid": "reserve_come_up_with_research_next_step",
+                "implement_plan": "reserve_extract_implementation_plan",
                 "end": END,
             },
         )
@@ -384,8 +423,8 @@ def create_architect_workflow(
         )
         workflow.add_conditional_edges(
             "settle_tools",
-            lambda state: after_settle(state, "continue"),
-            {"continue": "reserve_conduct_research", "end": END},
+            route_after_tools,
+            {"continue": "reserve_conduct_research", "implement_plan": "reserve_extract_implementation_plan", "end": END},
         )
         workflow.add_conditional_edges(
             "settle_extract_implementation_plan",
@@ -402,10 +441,11 @@ def create_architect_workflow(
     )
     workflow.add_conditional_edges(
         "check_research_step",
-        should_conduct_research,
+        route_after_check,
         {
             "plan_is_valid": "conduct_research",
             "plan_is_not_valid": "come_up_with_research_next_step",
+            "implement_plan": "extract_implementation_plan",
             "end": END,
         },
     )
@@ -420,8 +460,8 @@ def create_architect_workflow(
     )
     workflow.add_conditional_edges(
         "tools",
-        route_after_tool_dispatch,
-        {"record": "conduct_research", "settle": "conduct_research", "end": END},
+        route_after_tools,
+        {"continue": "conduct_research", "implement_plan": "extract_implementation_plan", "end": END},
     )
     workflow.add_edge("extract_implementation_plan", END)
     return workflow.compile().with_config({"tags": ["research-agent-v4"]})

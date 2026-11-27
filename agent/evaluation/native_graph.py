@@ -1,6 +1,10 @@
-"""Production graph assembly with one concrete cooperative native Requests observer."""
+"""Durable graph assembly for the concrete cooperative native Requests profile."""
 from agent.evaluation.native_runner import NativeAdmission, NativeRequestsRunner
 from agent.evaluation.repository_runtime import RepositoryRuntimes
+
+# A code-owned native profile policy, bound by the run's AgentCodeRevision.
+# Other graph factories keep the Architect's historical unbounded default.
+NATIVE_ARCHITECT_RESEARCH_ROUNDS = 1
 
 
 def native_graph_factory(runner, identity, event_sink, runtimes):
@@ -28,7 +32,8 @@ def native_graph_factory(runner, identity, event_sink, runtimes):
         common = dict(research_tools=list(runtimes.tools), budget_boundary=boundary,
             secret_filter=secrets, event_recorder=recorder, access_policy=config.access_policy)
         return create_workflow_graph(
-            architect=create_architect_workflow(runtimes.architect, **common),
+            architect=create_architect_workflow(runtimes.architect,
+                research_round_limit=NATIVE_ARCHITECT_RESEARCH_ROUNDS, **common),
             developer=create_developer_workflow(runtimes.developer, **common),
             verification_specs=config.verification_specs, verification_runner=runner,
             workspace_root=config.workspace_root, runtime_root=config.runtime_root,

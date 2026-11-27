@@ -3,6 +3,7 @@
 from pathlib import Path
 import hashlib
 import os
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -166,6 +167,54 @@ class RepositoryCandidateTests(unittest.TestCase):
         self.assertEqual(result.error_code, "io_error")
         self.assertFalse((self.root / "snapshot").exists())
         self.assertEqual(list(self.root.glob(".candidate-*")), [])
+
+
+from agent.evaluation.repository_candidate import CandidatePolicy,freeze_candidate
+
+class ImmutableCandidateTests(unittest.TestCase):
+    def fixture(self,root):
+        base=root/'base';base.mkdir();(base/'astropy_helpers').mkdir()
+        (base/'astropy_helpers/helper.py').write_bytes(b'fixed helper\n')
+        (base/'.gitmodules').write_bytes(b'fixed metadata\n');(base/'parent.py').write_bytes(b'old\n')
+        shutil.copytree(base,root/'work');return base,root/'work'
+
+    def test_unchanged_immutable_subtree_allows_parent_edit(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);base,work=self.fixture(root);(work/'parent.py').write_bytes(b'new\n')
+            result=freeze_candidate(base,work,CandidatePolicy(immutable_paths=('astropy_helpers','.gitmodules')),root/'snapshot')
+            self.assertTrue(result.ok,result.error_code)
+            self.assertEqual((root/'snapshot/astropy_helpers/helper.py').read_bytes(),b'fixed helper\n')
+            self.assertEqual([c.path for c in result.snapshot.changes],['parent.py'])
+
+    def test_immutable_edit_create_delete_and_rename_are_refused(self):
+        for operation in ('edit','metadata','create','mkdir','delete','rename'):
+            with self.subTest(operation=operation),tempfile.TemporaryDirectory() as temporary:
+                root=Path(temporary);base,work=self.fixture(root)
+                if operation=='edit':(work/'astropy_helpers/helper.py').write_bytes(b'tampered')
+                elif operation=='metadata':(work/'.gitmodules').write_bytes(b'tampered')
+                elif operation=='create':(work/'astropy_helpers/new.py').write_bytes(b'new')
+                elif operation=='mkdir':(work/'astropy_helpers/newdir').mkdir()
+                elif operation=='delete':(work/'astropy_helpers/helper.py').unlink()
+                else:(work/'astropy_helpers/helper.py').rename(work/'astropy_helpers/renamed.py')
+                result=freeze_candidate(base,work,CandidatePolicy(immutable_paths=('astropy_helpers','.gitmodules')),root/'snapshot')
+                self.assertFalse(result.ok);self.assertFalse((root/'snapshot').exists())
+
+    def test_existing_hidden_protected_paths_still_refuse_presence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);base,work=self.fixture(root)
+            result=freeze_candidate(base,work,CandidatePolicy(protected_paths=('astropy_helpers',)),root/'snapshot')
+            self.assertFalse(result.ok);self.assertEqual(result.error_code,'protected_path')
+
+    def test_immutable_case_rename_and_hardlink_alias_are_refused(self):
+        for operation in ('case-rename','hardlink'):
+            with self.subTest(operation=operation),tempfile.TemporaryDirectory() as temporary:
+                root=Path(temporary);base,work=self.fixture(root)
+                if operation=='case-rename':
+                    (work/'.gitmodules').rename(work/'temporary-name')
+                    (work/'temporary-name').rename(work/'.GITMODULES')
+                else:os.link(work/'parent.py',work/'astropy_helpers/new.py')
+                result=freeze_candidate(base,work,CandidatePolicy(immutable_paths=('astropy_helpers','.gitmodules')),root/'snapshot')
+                self.assertFalse(result.ok);self.assertFalse((root/'snapshot').exists())
 
 
 if __name__ == "__main__":
