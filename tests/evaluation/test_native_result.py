@@ -94,12 +94,23 @@ class NativeResultTests(unittest.TestCase):
 
     def test_valid_bounded_repair_chain_keeps_all_intermediate_evidence(self):
         before = self.attempt(self.before, 'FAILED f2p\nPASSED p2p\n', 1)
-        post = self.attempt(self.after, 'FAILED f2p\nPASSED p2p\n', 1)
+        post = self.attempt(self.after, 'FAILED f2p\nFAILED p2p\n', 1)
         repair = self.attempt(replace(self.after, attempt_id='3'*32, repair_attempt=1,
             source_sha256='8'*64), 'PASSED f2p\nPASSED p2p\n', 0)
         self.assertTrue(grade_native_attempts(self.spec, (before, post, repair)).resolved)
         bad_post = replace(post, issues=('cleanup_unknown',))
         self.assertFalse(grade_native_attempts(self.spec, (before, bad_post, repair)).resolved)
+
+    def test_only_regression_can_authorize_a_following_repair(self):
+        before = self.attempt(self.before, 'FAILED f2p\nPASSED p2p\n', 1)
+        repair = self.attempt(replace(self.after, attempt_id='3'*32, repair_attempt=1,
+            source_sha256='8'*64), 'PASSED f2p\nPASSED p2p\n', 0)
+        for log, code in (('FAILED f2p\nPASSED p2p\n',1), ('PASSED f2p\nPASSED p2p\n',0)):
+            with self.subTest(log=log):
+                post = self.attempt(self.after,log,code)
+                result = grade_native_attempts(self.spec,(before,post,repair))
+                self.assertFalse(result.resolved)
+                self.assertIn('repair_without_regression',result.issues)
 
     def test_environment_and_image_cannot_change_across_individually_valid_attempts(self):
         before = self.attempt(self.before, 'FAILED f2p\nPASSED p2p\n', 1)

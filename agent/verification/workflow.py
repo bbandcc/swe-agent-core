@@ -379,7 +379,7 @@ class VerificationController:
                     ),
                 )
             spec = replace(spec, timeout_seconds=min(spec.timeout_seconds, remaining))
-        result = self._dispatch(spec)
+        result = self._dispatch(spec, attempt=attempt)
         if self._secret_filter is not None:
             result = self._secret_filter.sanitize(result).value
         if isinstance(result, VerificationResult):
@@ -695,13 +695,14 @@ class VerificationController:
             return {"outcome": WorkflowOutcome.FAILED}
         return {"outcome": state.outcome}
 
-    def _dispatch(self, spec: VerificationSpec) -> VerificationResult | VerificationSummary:
+    def _dispatch(self, spec: VerificationSpec, *, attempt=None) -> VerificationResult | VerificationSummary:
         from agent.evaluation.pilot_workflow import PilotAdmission
         from agent.evaluation.swebench_cooperative import CooperativeAdmission
         from agent.evaluation.repository_runner import RepositoryAdmission
+        from agent.evaluation.native_runner import NativeAdmission
 
         admitted = (
-            type(self._reviewed_inputs) in {ReviewedVerificationInputs, PilotAdmission, CooperativeAdmission, RepositoryAdmission}
+            type(self._reviewed_inputs) in {ReviewedVerificationInputs, PilotAdmission, CooperativeAdmission, RepositoryAdmission, NativeAdmission}
             and self._reviewed_inputs.permits(spec, self._runner, self._workspace_root)
         )
         if not admitted:
@@ -711,6 +712,10 @@ class VerificationController:
                 message="Host verification admission refused: reviewed execution inputs are absent or changed; command not started.",
                 allowed_failure_case_ids=spec.allowed_failure_case_ids,
             )
+        if type(self._reviewed_inputs) is NativeAdmission and not self._runner.bind_attempt(attempt):
+            return VerificationResult.create(name=spec.name,argv=spec.argv,cwd=spec.cwd,
+                status=VerificationCheckStatus.EXECUTION_ERROR,exit_code=None,
+                message="Native verification requires an original armed durable attempt.")
         return self._runner.run(spec)
 
     def _run_checks(

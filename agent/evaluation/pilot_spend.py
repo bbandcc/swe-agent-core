@@ -20,6 +20,10 @@ INPUT_TOKENS = 49152
 OUTPUT_TOKENS = 2048
 RESERVE_MICROCNY = 114688
 MAX_RESPONSE_BYTES = 128 * 1024
+# Reviewed 2026-11-26: official pricing footnote keeps this legacy wire ID
+# callable at the same Flash rates. Preserve the requested ID; never rewrite it.
+# https://api-docs.deepseek.com/zh-cn/quick_start/pricing/
+FLASH_WIRE_IDS = frozenset({"deepseek-flash", "deepseek-v4-flash"})
 
 
 def _reject(code: str) -> None:
@@ -67,7 +71,7 @@ def _admit(request: httpx.Request) -> tuple[httpx.Request, str]:
                    "tools", "tool_choice", "parallel_tool_calls", "response_format"}
         if type(body) is not dict or set(body) - allowed:
             raise ValueError("fields")
-        if (body.get("model") != "deepseek-flash" or body.get("stream") is not False
+        if (body.get("model") not in FLASH_WIRE_IDS or body.get("stream") is not False
                 or body.get("thinking") != {"type": "disabled"}
                 or type(body.get("max_tokens")) is not int or body["max_tokens"] != OUTPUT_TOKENS
                 or type(body.get("n", 1)) is not int or body.get("n", 1) != 1):
@@ -192,7 +196,7 @@ class CappedDeepSeekTransport(httpx.BaseTransport):
                         content = b"".join(chunks)
                     data = json.loads(content, object_pairs_hook=_object, parse_constant=_constant)
                     usage = data.get("usage")
-                    if data.get("model") != "deepseek-flash" or type(usage) is not dict:
+                    if data.get("model") not in FLASH_WIRE_IDS or type(usage) is not dict:
                         raise ValueError("usage")
                     incoming, outgoing = usage.get("prompt_tokens"), usage.get("completion_tokens")
                     if (type(incoming) is not int or not 0 <= incoming <= INPUT_TOKENS

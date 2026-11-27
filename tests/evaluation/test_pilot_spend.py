@@ -24,6 +24,40 @@ def reply():
 
 
 class PilotSpendTests(unittest.TestCase):
+    def test_reviewed_flash_wire_ids_are_preserved_and_use_the_same_peak_cap(self):
+        for wire_model in ('deepseek-flash','deepseek-v4-flash'):
+            with self.subTest(model=wire_model),tempfile.TemporaryDirectory() as directory:
+                sent=[]
+                def handler(request):
+                    sent.append(json.loads(request.content)['model'])
+                    data=reply();data['model']=wire_model
+                    data['usage']={'prompt_tokens':49152,'completion_tokens':2048,'total_tokens':51200}
+                    return httpx.Response(200,json=data)
+                transport=CappedDeepSeekTransport(httpx.MockTransport(handler),Path(directory)/'ledger')
+                with httpx.Client(transport=transport) as client:
+                    response=client.post('https://api.deepseek.com/chat/completions',json={**payload(),'model':wire_model})
+                self.assertEqual(sent,[wire_model])
+                self.assertEqual(response.json()['model'],wire_model)
+                self.assertEqual(transport.summary()['settled_microcny'],114688)
+                self.assertEqual(transport.summary()['reserved_microcny'],114688)
+                self.assertEqual(transport.summary()['max_requests'],8)
+                self.assertFalse(transport.summary()['unknown'])
+
+    def test_legacy_wire_id_accepts_reviewed_canonical_response_without_rewriting_request(self):
+        with tempfile.TemporaryDirectory() as directory:
+            seen=[]
+            def handler(request):
+                seen.append(json.loads(request.content)['model'])
+                return httpx.Response(200,json=reply())
+            cap=CappedDeepSeekTransport(httpx.MockTransport(handler),Path(directory)/'ledger')
+            with httpx.Client(transport=cap) as client:
+                response=client.post('https://api.deepseek.com/chat/completions',
+                    json={**payload(),'model':'deepseek-v4-flash'})
+            self.assertEqual(seen,['deepseek-v4-flash'])
+            self.assertEqual(response.json()['model'],'deepseek-flash')
+            self.assertEqual(cap.summary()['settled_microcny'],260)
+            self.assertFalse(cap.summary()['unknown'])
+
     def test_exhausted_http_allowance_is_known_zero_through_both_real_runtimes(self):
         from langchain_deepseek import ChatDeepSeek
         from pydantic import SecretStr
@@ -167,7 +201,8 @@ class PilotSpendTests(unittest.TestCase):
 
     def test_invalid_requests_are_rejected_without_a_dispatch_or_reservation(self):
         mutations = [
-            {"model": "deepseek-v4-flash"}, {"thinking": {"type": "enabled"}},
+            {"model": "deepseek-v4-pro"}, {"model":"deepseek-v4-flash-vision-exp"},
+            {"thinking": {"type": "enabled"}},
             {"stream": True}, {"n": True}, {"n": 2}, {"max_tokens": 2049},
             {"temperature": float("nan")}, {"metadata": {}},
             {"messages": [{"role": "tool", "content": "text"}]},
@@ -188,11 +223,12 @@ class PilotSpendTests(unittest.TestCase):
             sent = []
             transport = CappedDeepSeekTransport(httpx.MockTransport(lambda request: sent.append(request)), Path(directory) / "ledger")
             with httpx.Client(transport=transport) as client:
-                for mutation in mutations:
-                    body = {**payload(), **mutation}
-                    raw = json.dumps(body).encode("utf-8")
-                    with self.subTest(fields=list(mutation)), self.assertRaisesRegex(httpx.TransportError, "PILOT_REQUEST_REJECTED"):
-                        client.post("https://api.deepseek.com/chat/completions", content=raw)
+                for wire_model in ('deepseek-flash','deepseek-v4-flash'):
+                    for mutation in mutations:
+                        body = {**payload(), 'model':wire_model, **mutation}
+                        raw = json.dumps(body).encode("utf-8")
+                        with self.subTest(model=wire_model,fields=list(mutation)), self.assertRaisesRegex(httpx.TransportError, "PILOT_REQUEST_REJECTED"):
+                            client.post("https://api.deepseek.com/chat/completions", content=raw)
                 raw = json.dumps(payload()).replace('"model":', '"model":"other","model":', 1)
                 with self.assertRaisesRegex(httpx.TransportError, "PILOT_REQUEST_REJECTED"):
                     client.post("https://api.deepseek.com/chat/completions", content=raw)

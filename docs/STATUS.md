@@ -2,6 +2,8 @@
 
 ## 已实现
 
+- 具体Requests原生候选运行器、真实JUnit桥和原图SQLite接线；共享材料/所有者锁及中断后精确清理。仅属单独协作式研究profile，Mock闭环不算模型成绩，见[原生边界](NATIVE_RESEARCH.md)。
+
 - Architect→Developer、确定性WorkspaceEditor文件事务、基线/修改后测试和最多两次有限repair。
 - 外部注入模型、工作区和配置；SQLite状态/文件对账、预算账本、运行轨迹与结构化终态。
 - 有界文本工具、多语言符号子集、目标文件working视图和版本化cursor。

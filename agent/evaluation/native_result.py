@@ -141,6 +141,13 @@ def grade_native_attempts(spec: NativeTaskSpec,
         if attempt.parsed.case_origins != before.parsed.case_origins:
             issues.add('cross_attempt_origin_mismatch')
     old, new = dict(before.parsed.cases), dict(after.parsed.cases)
+    # S2 only repairs regressions against the original baseline. An unchanged
+    # failure or an already successful post cannot authorize another attempt.
+    for intermediate in attempts[1:-1]:
+        current = dict(intermediate.parsed.cases)
+        if not any(status == 'PASSED' and current.get(case) != 'PASSED'
+                   for case, status in old.items()):
+            issues.add('repair_without_regression')
     if not spec.fail_to_pass or any(old.get(c) != 'FAILED' or new.get(c) != 'PASSED' for c in spec.fail_to_pass):
         issues.add('f2p_transition')
     if any(old.get(c) != 'PASSED' or new.get(c) != 'PASSED' for c in spec.pass_to_pass):

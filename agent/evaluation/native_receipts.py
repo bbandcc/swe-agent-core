@@ -85,6 +85,10 @@ def bind_native_receipts(result, *, spec, runtime_root, configured_runtime_root,
             return NativeReceiptAudit(False,('native_receipt_set_mismatch',))
         by_id = {a.attempt_id:a for a in state['verification_attempts']}
         ordered = sorted(original,key=lambda v:(v['phase']!='baseline',v['repair_attempt']))
+        repair_count = state.get('repair_attempts')
+        if (type(repair_count) is not int or not 0 <= repair_count <= 2
+                or repair_count != ordered[-1]['repair_attempt']):
+            return NativeReceiptAudit(False,('original_repair_count_mismatch',))
         bindings, evidence, summaries = [], [], []
         for item in ordered:
             receipt = item['receipt']; native = observed[receipt['receipt_id']]
@@ -108,6 +112,9 @@ def bind_native_receipts(result, *, spec, runtime_root, configured_runtime_root,
             evidence.append(native)
             summaries.append(summary)
         baseline, post = (summaries[0],), (summaries[-1],)
+        if any(classify_verification(baseline,(summary,)) is not VerificationStatus.REGRESSION
+               for summary in summaries[1:-1]):
+            return NativeReceiptAudit(False,('illegal_repair_transition',))
         if (classify_verification(baseline,post) is not state['verification_status']
                 or not evaluate_acceptance(baseline,post).accepted):
             return NativeReceiptAudit(False,('original_acceptance_policy_mismatch',))

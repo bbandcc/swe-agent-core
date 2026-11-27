@@ -46,7 +46,8 @@ class NativeReceiptTests(unittest.TestCase):
             self.receipts[index].update(source_hash=self.identities[index].source_sha256,
                 result_digest=hashlib.sha256(json.dumps(asdict(summary),sort_keys=True,default=str).encode()).hexdigest())
         self.result = replace(self.result,state={**self.result.state,'verification_attempts':tuple(attempts),
-            'outcome':WorkflowOutcome.COMPLETED,'verification_status':VerificationStatus.IMPROVED})
+            'outcome':WorkflowOutcome.COMPLETED,'verification_status':VerificationStatus.IMPROVED,
+            'repair_attempts':0})
         path=self.runtime/self.result.record_ref
         record=RunRecord.from_dict(json.loads(path.read_text(encoding='utf-8')))
         saved=write_run_record(self.runtime,replace(record,verification_status='improved'))
@@ -124,6 +125,52 @@ class NativeReceiptTests(unittest.TestCase):
         self.assertFalse(self.bind(result=replace(self.result,audit_incomplete=True)).resolved)
         self.source=b'changed after verification'
         self.assertFalse(self.bind().resolved)
+
+    def repair_chain(self,kind):
+        from agent.evaluation.native_result import validate_native_attempt
+        original=self.result.state['verification_attempts'];post=original[1]
+        cases=tuple(replace(c,status=VerificationCaseStatus.FAIL)
+            if kind=='regression' or kind=='unfixed' and c.case_id=='observer::case_0' else c
+            for c in post.result.report.cases)
+        summary=replace(post.result,report=replace(post.result.report,cases=cases),
+            status=VerificationCheckStatus.PASS if kind=='passed' else VerificationCheckStatus.FAIL,
+            exit_code=0 if kind=='passed' else 1)
+        middle_id=replace(self.identities[1],source_sha256=hashlib.sha256(b'intermediate').hexdigest())
+        log=''.join(('PASSED' if c.status is VerificationCaseStatus.PASS else 'FAILED')+' '+source+'\n'
+            for (source,_),c in zip(self.mapping,cases))
+        middle=validate_native_attempt(self.spec,middle_id,expected_identity=middle_id,
+            log=log,exit_code=summary.exit_code,completed=True,cleanup_complete=True)
+        last_id=replace(self.identities[1],attempt_id='3'*32,repair_attempt=1)
+        last=replace(self.native[1],identity=last_id)
+        final_summary=replace(post.result,message='native_receipt='+'3'*32)
+        approved=VerificationSpec('observer',('python','-m','pytest','--junitxml=report.xml'),report_path='report.xml')
+        final=VerificationAttempt.started(run_id=post.run_id,task_id=post.task_id,phase='post',
+            repair_attempt=1,spec_index=0,spec=approved,attempt_ordinal=0,
+            workspace_revision=post.workspace_revision).with_result(final_summary)
+        receipts=[dict(self.receipts[0])]
+        for value,checked in ((middle,summary),(last,final_summary)):
+            receipts.append({'receipt_id':value.identity.attempt_id,'source_hash':value.identity.source_sha256,
+                'result_digest':hashlib.sha256(json.dumps(asdict(checked),sort_keys=True,default=str).encode()).hexdigest()})
+        result=replace(self.result,state={**self.result.state,'verification_attempts':
+            (original[0],post.with_result(summary),final),'repair_attempts':1})
+        return result,receipts,(self.native[0],middle,last)
+
+    def test_original_regression_then_bounded_repair_can_resolve(self):
+        result,receipts,native=self.repair_chain('regression')
+        audit=self.bind(result=result,receipts=receipts,native=native)
+        self.assertTrue(audit.resolved,audit)
+
+    def test_illegal_original_retry_is_rejected_even_with_complete_receipt_set(self):
+        for kind in ('unfixed','passed'):
+            with self.subTest(kind=kind):
+                result,receipts,native=self.repair_chain(kind)
+                self.assertFalse(self.bind(result=result,receipts=receipts,native=native).resolved)
+
+    def test_checkpoint_repair_count_must_match_last_original_post(self):
+        for value in (None,True,-1,1,2,3,'0'):
+            with self.subTest(value=value):
+                changed=replace(self.result,state={**self.result.state,'repair_attempts':value})
+                self.assertFalse(self.bind(result=changed).resolved)
 
     def test_original_attempt_value_types_survive_real_sqlite_checkpoint_roundtrip(self):
         import sqlite3
