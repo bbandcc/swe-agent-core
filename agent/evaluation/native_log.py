@@ -12,6 +12,9 @@ STATUSES = 'PASSED|FAILED|ERROR|SKIPPED|XFAIL|XPASS'
 _STATUS_SET = frozenset(STATUSES.split('|'))
 ANSI = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
 MAX_LOG_BYTES = 4 * 1024 * 1024
+# pytest 6.2.5 (1569fac603d9), logging.DEFAULT_LOG_FORMAT and terminal capture sections.
+PYTEST_LOG_SECTION = re.compile(r'-{3,} Captured log (?:setup|call|teardown) -{3,}')
+PYTEST_ERROR_LOG = re.compile(r'ERROR {4}[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z0-9_.-]+\.py:[0-9]+(?: .*)?')
 
 
 @dataclass(frozen=True)
@@ -72,7 +75,7 @@ def parse_native_log(parser_id: str, log: str, required_ids: tuple[str, ...]) ->
             outcomes[identity] = status
         origins[identity] = origin
 
-    previous, context = None, ''
+    previous, context, captured_log = None, '', False
     for raw_line in log.split('\n'):
         if len(raw_line) > 65536:
             issues.add('line_limit'); continue
@@ -107,6 +110,15 @@ def parse_native_log(parser_id: str, log: str, required_ids: tuple[str, ...]) ->
                 observe(identity, {'ok': 'PASSED', 'F': 'FAILED', 'E': 'ERROR',
                                    'XFAIL': 'XFAIL', 'SKIP': 'SKIPPED'}[token],
                         context + ':' + identity)
+            continue
+        if PYTEST_LOG_SECTION.fullmatch(line):
+            captured_log = True
+            continue
+        if line.startswith(('===', '___', '---')) and line.endswith(('===', '___', '---')):
+            captured_log = False
+        # Recognize only the default logger record inside its captured section.
+        # Real unknown test ERROR/FAILED outcomes still reach observe below.
+        if captured_log and PYTEST_ERROR_LOG.fullmatch(line):
             continue
         match = re.fullmatch(r'(' + STATUSES + r')\s+(.+)', line)
         if match:

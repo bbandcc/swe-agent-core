@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "bed570265fd49364f014cc2d2fc3c5c3c197b8a7",
+  "source_commit": "df52d7e75eb555e44a851c1574d1146bb450d474",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -236,8 +236,8 @@
       "bytes": 2494
     },
     "agent/evaluation/native_log.py": {
-      "sha256": "4a607323aaed1a795313139c837b87da1bf68f760684979fdb64e9c1ab392586",
-      "bytes": 7076
+      "sha256": "00c18da06f51b08eba7eb25e6d193d7d30646c26b10647aa4f9939ebe9ac6f92",
+      "bytes": 7839
     },
     "agent/evaluation/native_observer.py": {
       "sha256": "2614ddc7edd165e14554ea08f19201a16d2a627b1f768c563e0cd78703cf615d",
@@ -584,8 +584,8 @@
       "bytes": 5943
     },
     "docs/EXPANSION.md": {
-      "sha256": "a208e5b89bcf7445b1cf756e9731a9bdc4b058773530061022b9c7a00de6bda9",
-      "bytes": 3109
+      "sha256": "91c70c4800e832b23de1796934dd39080fa2815a7bd5242adb20999338a2b166",
+      "bytes": 3807
     },
     "docs/NATIVE_RESEARCH.md": {
       "sha256": "a1ebda690331b81085a9e5415d9fff3b217e94240a54c45f8d171680f59b43c3",
@@ -788,8 +788,8 @@
       "bytes": 5790
     },
     "tests/evaluation/test_native_log.py": {
-      "sha256": "d7ec01e0b235d034e847a308efc43d29b7f0be72cdd97e8a463111d1e017c36f",
-      "bytes": 5968
+      "sha256": "c9afc5a06c12242cd96008aa8c54df564c305f2bec7324b0e98ca1abe1b4b89a",
+      "bytes": 8977
     },
     "tests/evaluation/test_native_observer.py": {
       "sha256": "0fbef7e77fd340fe5b84f5680339407c1cfb9c4d43f4f84df4d5c6a536d533d9",

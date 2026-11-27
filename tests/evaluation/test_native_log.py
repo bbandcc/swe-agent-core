@@ -6,6 +6,11 @@ from pathlib import Path
 
 from agent.evaluation.native_log import parse_native_log
 
+CASE='tests/test_basic.py::test_error_handling'
+CAPTURE='------------------------------ Captured log call -------------------------------\n'
+LOGGER='ERROR    flask_test:app.py:1441 Exception on / [GET]\n'
+SUMMARY='=========================== short test summary info ===========================\n'
+
 
 class NativeLogTests(unittest.TestCase):
     def test_old_pytest_verbose_options_keep_normalization_and_raw_origin(self):
@@ -100,6 +105,51 @@ class NativeLogTests(unittest.TestCase):
         self.assertFalse(result.complete)
         result = parse_native_log('pytest', 'noise\x0bPASSED case\n', ('case',))
         self.assertFalse(result.complete)
+
+
+class NativeCapturedLoggingTests(unittest.TestCase):
+    def test_pytest_default_error_logging_is_diagnostic_inside_capture(self):
+        for parser in ('pytest','pytest-options','pytest-v2','pytest-options-v2','matplotlib','seaborn'):
+            with self.subTest(parser=parser):
+                result=parse_native_log(parser,CAPTURE+LOGGER+'Traceback text\n'+SUMMARY+'PASSED '+CASE+'\n',(CASE,))
+                self.assertTrue(result.strict_passed,result)
+                self.assertEqual(result.cases,((CASE,'PASSED'),))
+
+    def test_logger_looking_error_outside_capture_is_still_rejected(self):
+        for prefix in ('',SUMMARY):
+            result=parse_native_log('pytest',prefix+LOGGER+'PASSED '+CASE+'\n',(CASE,))
+            self.assertFalse(result.complete)
+            self.assertIn('unexpected_failure',result.issues)
+
+    def test_unknown_real_error_and_failure_are_never_roster_filtered(self):
+        for status in ('ERROR','FAILED'):
+            for prefix in (CAPTURE+LOGGER,CAPTURE+LOGGER+SUMMARY):
+                unknown='tests/test_other.py::test_case[flask_test:app.py:1441]'
+                log=prefix+status+' '+unknown+' - reason\nPASSED '+CASE+'\n'
+                result=parse_native_log('pytest',log,(CASE,))
+                self.assertFalse(result.complete)
+                self.assertIn('unexpected_failure',result.issues)
+
+    def test_malformed_and_truncated_logging_is_not_silently_discarded(self):
+        for line in ('ERROR    flask_test:app.py:', 'ERROR    flask_test:app.py:not-a-line message',
+                'ERROR tests/test_other.py::test_case', 'ERROR    flask_test:app.py:1441\x00'):
+            with self.subTest(line=line):
+                result=parse_native_log('pytest',CAPTURE+line+'\nPASSED '+CASE+'\n',(CASE,))
+                self.assertFalse(result.complete)
+
+    def test_missing_outcome_and_conflicting_real_case_stay_rejected(self):
+        missing=parse_native_log('pytest',CAPTURE+LOGGER,(CASE,))
+        self.assertIn('missing_case',missing.issues)
+        result=parse_native_log('pytest',CAPTURE+LOGGER+SUMMARY+'PASSED '+CASE+'\nERROR '+CASE+' - failure\n',(CASE,))
+        self.assertFalse(result.complete)
+        self.assertIn('conflicting_case',result.issues)
+
+    def test_capture_end_restores_strict_handling(self):
+        for separator in (SUMMARY,'________________________ next_test ________________________\n',
+                '------------------------------ Captured stderr call ------------------------------\n'):
+            result=parse_native_log('pytest',CAPTURE+LOGGER+separator+LOGGER+'PASSED '+CASE+'\n',(CASE,))
+            self.assertFalse(result.complete)
+            self.assertIn('unexpected_failure',result.issues)
 
 
 if __name__ == '__main__': unittest.main()

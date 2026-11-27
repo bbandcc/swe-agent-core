@@ -12,4 +12,8 @@
 
 已提供全repo有界工具和durable runtime seam，以及固定JSON-case RepositoryObserverRunner/具体RepositoryAdmission/repository_graph_factory。host只加载项目静态observer，外来oracle只入Docker。完整作者Mock→两文件→Docker→SQLite控制通过；其证据仍是cooperative，并非防伪oracle或官方12repo harness适配。BenchmarkBatchAllowance只负责20×0.2一次性串行财务槽，不赋予执行安全或评分准入。
 
-`prepare_native_task`提供固定b8d53321、已审17组repo/version的原生命令和私有测试数据配置；`parse_native_log`按精确roster解析7类日志，缺失、冲突、别名或超限不能变为成功，skip/error也不是通过。二者只处理数据，不授权执行或等同官方完整评分器。首个官方Requests镜像已在受限容器中完成离线target安装和候选导入来源验证，但gold仍有2项必要P2P失败及缺失httpbin fixture，未准入付费任务。其余环境/native runner仍待实现与实证，不能声明20题已运行。
+`prepare_native_task`提供固定b8d53321、已审17组repo/version的原生命令和私有测试数据配置；`parse_native_log`按精确roster解析7类日志，缺失、冲突、别名或超限不能变为成功，skip/error也不是通过。pytest的默认ERROR日志仅在Captured log节内作为诊断处理，真实未知测试失败仍拒绝。数据接口不授权执行或等同官方完整评分器。
+
+具体Requests研究运行器已通过无gold候选入口、固定16wheel离线兼容配方、共享TLS材料、原Architect→Developer/S1/S2、真实host JUnit和SQLite回执闭环的作者Mock控制；原生baseline期间真实父进程硬退出后，资源独立清理、业务UNKNOWN、不重放调用。详见[原生研究边界](NATIVE_RESEARCH.md)。这是具体协作式profile，不能替代其余19个环境或20题真实模型结果；历史原镜像失败不追溯改写。
+
+原4元20槽支持已知且无活动claim时显式release/open_existing；已用题不能重开，UNKNOWN/损坏/永久close拒绝。真实入口先核对准确源码/双平台CI/官方价格/账户，再消费对应槽。读取公开源码清单采用官方GitHub Contents API的不可变ref与Git blob/文件字节校验，原raw域名网络失败没有触发模型调用。
