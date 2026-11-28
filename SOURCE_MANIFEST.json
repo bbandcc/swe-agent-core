@@ -1,6 +1,6 @@
 {
   "kind": "PUBLIC_CODE_SNAPSHOT",
-  "source_commit": "7dabaf7282e6bf45290cf1dbf44953e248d5b406",
+  "source_commit": "f4e2bfa74074fc533d64ec075ec77101e7af0c05",
   "public_parent": "90ff97c041191c34084efd49489067ae0a4510bb",
   "source_files": {
     ".env.example": {
@@ -235,9 +235,41 @@
       "sha256": "ae9ab7a86c0f24f216f65a3ed3817e262994ef55aaa97510b8a9fb3ca8e0057f",
       "bytes": 7575
     },
+    "agent/evaluation/native_flask/__init__.py": {
+      "sha256": "7e57717aaeaa5e16eada60a46bb5a344584862dd9418693e7541709fe7c4c868",
+      "bytes": 291
+    },
+    "agent/evaluation/native_flask/candidate.py": {
+      "sha256": "eb424515d4be69e24c09455f436255999b905a8ccba9ef86119b0e4cbab60643",
+      "bytes": 9068
+    },
+    "agent/evaluation/native_flask/container.py": {
+      "sha256": "a88d62ee687a29e1ffc422db8cc8c59e3d2f7c90d94af3639307728811e498f9",
+      "bytes": 11864
+    },
+    "agent/evaluation/native_flask/guest.py": {
+      "sha256": "29734bf9a37527ea862af6b6eac3f48c01c0a6a564cd8fbbd6b48f7352e9aa46",
+      "bytes": 5820
+    },
+    "agent/evaluation/native_flask/ownership.py": {
+      "sha256": "c0308df3e9224772aa2e831343f64b906f9aa67f5f2628688808d7eaa4064116",
+      "bytes": 10018
+    },
+    "agent/evaluation/native_flask/profile.py": {
+      "sha256": "dc3dd288d177a1030bc64ad83e27a946e8df0f257ea8219a82c89679cb10d4d7",
+      "bytes": 3574
+    },
+    "agent/evaluation/native_flask/runtime.py": {
+      "sha256": "b4a224cecb6644ee73a0620d8bbcf5cff12057f3b4dd83b08b89fe65040505dd",
+      "bytes": 2912
+    },
+    "agent/evaluation/native_flask_runner.py": {
+      "sha256": "4d307799e96760a9dc39f28b1b8b1adb6b2ddd745b73ea0808851ebfa1044cc6",
+      "bytes": 11363
+    },
     "agent/evaluation/native_graph.py": {
-      "sha256": "1ea978408232f74afbdf1a27a29779168bf84f94e2dbcf61a410c4ed8c92e649",
-      "bytes": 2749
+      "sha256": "a65114ea553f49cef8a20c086b9d96e74126fb26570d5c0d794f425a3b13410c",
+      "bytes": 2833
     },
     "agent/evaluation/native_log.py": {
       "sha256": "00c18da06f51b08eba7eb25e6d193d7d30646c26b10647aa4f9939ebe9ac6f92",
@@ -288,8 +320,8 @@
       "bytes": 7542
     },
     "agent/evaluation/native_runner.py": {
-      "sha256": "3e1dc91808cdac959a46656d1c405c8ad6c6520077a1de947331207219cfeeea",
-      "bytes": 14377
+      "sha256": "3264572f3ce7e40900d23957e0938615b948813afdc17c5c2b83d737652a7250",
+      "bytes": 14600
     },
     "agent/evaluation/native_task_spec.py": {
       "sha256": "d84076b092895a0e7a419e0de9cd071c04c03120ecb64f2b81254ae6f925c16f",
@@ -795,6 +827,22 @@
       "sha256": "3a85aab1dfb13d46a5e82c135bee71e07895e6dffa040af7e74f9202b5c1079c",
       "bytes": 5790
     },
+    "tests/evaluation/test_native_flask_candidate.py": {
+      "sha256": "31abbb6fdeb1da17190d2c13b4f7c774f8aea4e308fb790a1d8ada4b70c5d6bc",
+      "bytes": 9263
+    },
+    "tests/evaluation/test_native_flask_container.py": {
+      "sha256": "a33ffb0ee8e24666d07ad45a3214813f89da2323bc92220cb4ef4e938284781a",
+      "bytes": 11877
+    },
+    "tests/evaluation/test_native_flask_ownership.py": {
+      "sha256": "7d50c8aff735ccb68f70ff593fd93774eda3d858f171cf0a6bd3da4bd6ee161f",
+      "bytes": 8644
+    },
+    "tests/evaluation/test_native_flask_runner.py": {
+      "sha256": "1a0b95383a980ad0092b1e0ef0774fee751a5bb6190847245f69f82726730198",
+      "bytes": 5409
+    },
     "tests/evaluation/test_native_log.py": {
       "sha256": "c9afc5a06c12242cd96008aa8c54df564c305f2bec7324b0e98ca1abe1b4b89a",
       "bytes": 8977
@@ -1028,8 +1076,8 @@
       "bytes": 11154
     },
     "tests/test_s5d2_ci_contract.py": {
-      "sha256": "d85ee88b539eabfb9914b9569dad5b72188d5ca7a0501b469c00ad8c0957deb4",
-      "bytes": 12775
+      "sha256": "3f5ca6efe61de711e012ba34fbc287944c8dd31a318982cb852488127a1fb3cc",
+      "bytes": 12980
     },
     "tests/test_sdist_review_evidence.py": {
       "sha256": "d591c719985215d5f3f8bbfe2020eaf9f8c445a4d6c27e3fe4a498b342295a15",

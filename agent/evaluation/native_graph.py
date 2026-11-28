@@ -1,4 +1,4 @@
-"""Durable graph assembly for the concrete cooperative native Requests profile."""
+"""Durable graph assembly for two concrete cooperative native profiles."""
 from agent.evaluation.native_runner import NativeAdmission, NativeRequestsRunner
 from agent.evaluation.repository_runtime import RepositoryRuntimes
 
@@ -9,7 +9,8 @@ NATIVE_ARCHITECT_RESEARCH_ROUNDS = 1
 
 def native_graph_factory(runner, identity, event_sink, runtimes):
     """Return the durable graph seam; no provider, workspace or sink globals."""
-    if type(runner) is not NativeRequestsRunner or type(runtimes) is not RepositoryRuntimes:
+    from agent.evaluation.native_flask_runner import NativeFlaskRunner
+    if type(runner) not in (NativeRequestsRunner, NativeFlaskRunner) or type(runtimes) is not RepositoryRuntimes:
         raise ValueError('Concrete repository dependencies required')
 
     def factory(config, run_id, saver, clock):

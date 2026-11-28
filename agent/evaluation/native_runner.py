@@ -195,8 +195,12 @@ class NativeRequestsRunner:
 
 class NativeAdmission:
     def __init__(self,runner):
-        if type(runner) is not NativeRequestsRunner:raise ValueError('Concrete native Requests runner required')
+        from agent.evaluation.native_flask_runner import NativeFlaskRunner
+        if type(runner) not in (NativeRequestsRunner, NativeFlaskRunner):
+            raise ValueError('Concrete reviewed native runner required')
         self.runner=runner
 
     def permits(self,spec,runner,workspace_root):
-        return runner is self.runner and type(runner) is NativeRequestsRunner and runner.permits(spec,workspace_root)
+        from agent.evaluation.native_flask_runner import NativeFlaskRunner
+        return (runner is self.runner and type(runner) in (NativeRequestsRunner, NativeFlaskRunner)
+                and runner.permits(spec,workspace_root))
